@@ -2,6 +2,7 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import { page } from '$app/state';
 
 	let { children } = $props();
 </script>
@@ -15,7 +16,9 @@
 </svelte:head>
 
 <div class="flex min-h-screen">
-	<Navbar />
+	{#if page.url.pathname !== "/login"}
+		<Navbar />
+	{/if}
 	<main class="ml-16 flex-1 p-6">
 		{@render children()}
 	</main>
