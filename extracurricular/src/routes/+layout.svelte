@@ -19,7 +19,7 @@
 	{#if page.url.pathname !== "/login"}
 		<Navbar />
 	{/if}
-	<main class="{page.url.pathname !== '/login' ? 'ml-16 p-6' : ''} flex-1">
+	<main class="{page.url.pathname !== '/login' ? 'ml-16' : ''} flex-1">
 		{@render children()}
 	</main>
 </div>

@@ -2,4 +2,4 @@
     let { data } = $props();
 </script>
 
-<h1>Profile</h1>
+<h1 class="text-center mt-5 text-3xl">Profile</h1>
