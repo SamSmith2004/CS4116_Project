@@ -6,7 +6,7 @@
 - : Nicholas Frantz
 
 ## Quick setup
-- Install Node JS
+- Install Node JS & Docker
 - Create an .env file: 
     - Copy contents of `.env.example` to a new `.env` file
 - Run the following commands in the extracurricular folder to install dependencies:
@@ -15,5 +15,7 @@ npm install
 ```
 - Run the following command to start the app
 ```sh
+docker compose up -d
+npm run db:push 
 npm run dev
 ```
