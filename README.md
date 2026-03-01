@@ -1,4 +1,7 @@
 # CS4116 Project
+## Description
+Extracurricular is a dating website for university students
+
 ## Contributors
 - 23388986: Sam Smith
 - : Leo Brady
