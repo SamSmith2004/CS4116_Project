@@ -38,13 +38,19 @@ export const actions = {
 		const email = formData.get('email')?.toString() ?? '';
 		const password = formData.get('password')?.toString() ?? '';
 		const name = formData.get('name')?.toString() ?? '';
+		const fname = formData.get('fname')?.toString() ?? '';
+		const lname = formData.get('lname')?.toString() ?? '';
+		const dob = formData.get('dob')?.toString() ?? '';
 
 		try {
 			await auth.api.signUpEmail({
 				body: {
 					email,
 					password,
-					name,
+					name: name || `${fname} ${lname}`,
+					fname,
+					lname,
+					dob,
 					callbackURL: '/auth/verification-success'
 				}
 			});
