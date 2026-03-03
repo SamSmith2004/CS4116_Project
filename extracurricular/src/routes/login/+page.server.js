@@ -42,6 +42,9 @@ export const actions = {
 		if (email === null || password === null || dob === null ) { 
 			return fail(400, { message: 'All fields are required' });
 		}
+		if (!isValidEmail(email)) {
+			return fail(400, { message: 'Invalid email address'});
+		}
 		if (!isAdult(dob)) { 
 			return fail(400, { message: 'You must be 18 or older to register' });
 		}
@@ -59,6 +62,18 @@ export const actions = {
 };
 
 const isAdult = (dob) => {
-	// TODO: implement
-	return true;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--; 
+    }
+    return age >= 18;
+}
+
+
+const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
