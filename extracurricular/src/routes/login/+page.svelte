@@ -35,42 +35,7 @@
                 </button>
             </div>
 
-            <form method="post" action={isRegistering ? '?/signUpEmail' : '?/signInEmail'} use:enhance class="space-y-4">
-
-                {#if isRegistering}
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1" for="fname">First Name</label>
-                            <input
-                                id="fname"
-                                name="fname"
-                                type="text"
-                                placeholder="John"
-                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1" for="lname">Last Name</label>
-                            <input
-                                id="lname"
-                                name="lname"
-                                type="text"
-                                placeholder="Doe"
-                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1" for="dob">Date of Birth</label>
-                        <input
-                            id="dob"
-                            name="dob"
-                            type="date"
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
-                        />
-                    </div>
-                {/if}
-
+            <form method="post" action={isRegistering ? '?/signUpInit' : '?/signInEmail'} use:enhance class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
                         Email Address
@@ -102,6 +67,18 @@
                         />
                     </div>
                 </div>
+
+                {#if isRegistering}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="dob">Date of Birth</label>
+                        <input
+                            id="dob"
+                            name="dob"
+                            type="date"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                        />
+                    </div>
+                {/if}
 
                 {#if form?.message}
                     <div class="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">

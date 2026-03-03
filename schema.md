@@ -7,6 +7,7 @@ Database is PostgreSQL
 | `degree` | `Computer Science`, ...|
 | `partner_pref` | `male`, `female`, `both` |
 | `gender` | `male`, `female`, `other` |
+| `interest` | `Hiking`, `Music`, ... |
 | `match_status` | `pending`, `matched`, `unmatched` |
 
 ---
@@ -99,7 +100,7 @@ Database is PostgreSQL
 |--------|------|-------------|
 | id | UUID | PRIMARY KEY, DEFAULT random() |
 | user_id | TEXT | NOT NULL, FK → user(id) ON DELETE CASCADE |
-| interest | VARCHAR(50) | NOT NULL |
+| interest | interest | |
 
 **Indexes:** `interests_userId_idx` on `user_id`
 

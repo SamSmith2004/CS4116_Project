@@ -33,35 +33,32 @@ export const actions = {
 
 		return redirect(302, '/');
 	},
-	signUpEmail: async (event) => {
+	signUpInit: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString() ?? '';
-		const password = formData.get('password')?.toString() ?? '';
-		const name = formData.get('name')?.toString() ?? '';
-		const fname = formData.get('fname')?.toString() ?? '';
-		const lname = formData.get('lname')?.toString() ?? '';
-		const dob = formData.get('dob')?.toString() ?? '';
+		const email = formData.get('email').toString();
+		const password = formData.get('password').toString();
+		const dob = formData.get('dob').toString();
 
-		try {
-			await auth.api.signUpEmail({
-				body: {
-					email,
-					password,
-					name: name || `${fname} ${lname}`,
-					fname,
-					lname,
-					dob,
-					callbackURL: '/auth/verification-success'
-				}
-			});
-		} catch (error) {
-			console.log(error)
-			if (error instanceof APIError) {
-				return fail(400, { message: error.message || 'Registration failed' });
-			}
-			return fail(500, { message: 'Unexpected error' });
+		if (email === null || password === null || dob === null ) { 
+			return fail(400, { message: 'All fields are required' });
+		}
+		if (!isAdult(dob)) { 
+			return fail(400, { message: 'You must be 18 or older to register' });
 		}
 
-		return redirect(302, '/profile');
+		event.cookies.set('signup_temp', JSON.stringify({ email, password, dob }), {
+			path: '/login/register-details',
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: true,
+			maxAge: 60 * 10 // 10m
+		});
+		
+		return redirect(302, '/login/register-details');
 	}
 };
+
+const isAdult = (dob) => {
+	// TODO: implement
+	return true;
+}

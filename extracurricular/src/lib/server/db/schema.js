@@ -23,6 +23,19 @@ export const degreeEnum = pgEnum('degree', [
 	// TODO
 ]);
 
+export const interestEnum = pgEnum('interest', [
+	'Hiking',
+	'Music',
+	'Gaming',
+	'Reading',
+	'Movies',
+	'Cycling',
+	'Sport',
+	'Swimming',
+	'Fishing',
+	'Computers'
+]);
+
 export const partnerPrefEnum = pgEnum('partner_pref', ['male', 'female', 'both']);
 export const genderEnum = pgEnum('gender', ['male', 'female', 'other']);
 export const matchStatusEnum = pgEnum('match_status', ['pending', 'matched', 'unmatched']);
@@ -52,7 +65,7 @@ export const interests = pgTable(
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
-		interest: varchar('interest', { length: 50 }).notNull()
+		interest: interestEnum('interest')
 	},
 	(table) => [index('interests_userId_idx').on(table.userId)]
 );
