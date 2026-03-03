@@ -10,5 +10,24 @@ export const auth = betterAuth({
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg' }),
 	emailAndPassword: { enabled: true },
+	user: {
+		additionalFields: {
+			fname: {
+				type: 'string',
+				required: true,
+				fieldName: 'fname'
+			},
+			lname: {
+				type: 'string',
+				required: true,
+				fieldName: 'lname'
+			},
+			dob: {
+				type: 'string',
+				required: true,
+				fieldName: 'dob'
+			}
+		}
+	},
 	plugins: [sveltekitCookies(getRequestEvent)] // make sure this is the last plugin in the array
 });
