@@ -91,7 +91,7 @@
                     type="submit"
                     class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm mt-2"
                 >
-                    {isRegistering ? 'Create Account' : 'Sign In'}
+                    {isRegistering ? 'Next' : 'Sign In'}
                 </button>
             </form>
         </div>
