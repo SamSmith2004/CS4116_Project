@@ -9,16 +9,15 @@ Extracurricular is a dating website for university students
 - : Nicholas Frantz
 
 ## Quick setup
-- Install Node JS & Docker
-- Create an .env file: 
-    - Copy contents of `.env.example` to a new `.env` file
+- Install Node JS 
+- Place the `.env` file in the contents: 
+    - **For Grading**: .env file will be provided in submission
+    - **For Contributors**: see WhatsApp for .env
 - Run the following commands in the extracurricular folder to install dependencies:
 ```sh
 npm install
 ```
 - Run the following command to start the app
 ```sh
-docker compose up -d
-npm run db:push 
 npm run dev
 ```
