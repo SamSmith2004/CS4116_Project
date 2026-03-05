@@ -35,7 +35,7 @@
 
 <TopBar placeholder="Filter conversations" onSearch={handleSearch} />
 
-<div class="max-w-4xl mx-auto px-4 py-4">
+<div class="max-w-2xl lg:max-w-5xl xl:max-w-7xl mx-auto px-4 py-4">
     <h1 class="text-xl font-semibold text-gray-900 mb-3">Messages</h1>
 
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
