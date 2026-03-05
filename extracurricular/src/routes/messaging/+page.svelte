@@ -40,12 +40,14 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
         {#each filtered as convo (convo.id)}
-            <ConvoPreview
-                name={convo.name}
-                lastMessage={convo.lastMessage}
-                time={convo.time}
-                avatarColor={convo.avatarColor}
-            />
+            <a href={`/messaging/${convo.id}`} class="block" data-sveltekit-preload-data="hover">
+                <ConvoPreview
+                    name={convo.name}
+                    lastMessage={convo.lastMessage}
+                    time={convo.time}
+                    avatarColor={convo.avatarColor}
+                />
+            </a>
         {:else}
             <div class="flex flex-col items-center justify-center py-12 text-gray-400">
                 <span class="material-symbols-rounded text-[48px] mb-2">chat_bubble_outline</span>
