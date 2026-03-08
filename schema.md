@@ -168,6 +168,17 @@ Database is PostgreSQL
 
 ---
 
+### `reports`
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | UUID | PRIMARY KEY, DEFAULT random() |
+| message_id | UUID | FK → messages(id) ON DELETE CASCADE |
+| reported_user_id | TEXT | NOT NULL, FK → user(id) ON DELETE CASCADE |
+| reason | TEXT | |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() |
+
+---
+
 ## Relationships
 - `user` has one `user_details`
 - `user` has many `interests`
@@ -175,4 +186,6 @@ Database is PostgreSQL
 - `user` has many `convos` (as user_1 or user_2)
 - `convos` has many `messages`
 - `user` has many `session` 
-- `user` has many `account` 
+- `user` has many `account`
+- `user` has many `reports` (as reported_user)
+- `messages` has many `reports` 
