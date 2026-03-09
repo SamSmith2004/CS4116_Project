@@ -112,6 +112,14 @@ erDiagram
         varchar email UK
     }
 
+    REPORTS {
+        uuid id PK
+        uuid message_id FK
+        text reported_user_id FK
+        text reason
+        timestamp created_at
+    }
+
     USER ||--o{ SESSION : "has"
     USER ||--o{ ACCOUNT : "has"
     USER ||--o| USER_DETAILS : "has"
@@ -122,5 +130,7 @@ erDiagram
     USER ||--o{ CONVOS : "user_2"
     USER ||--o{ MESSAGES : "sends"
     USER ||--o{ MESSAGES : "receives"
+    USER ||--o{ REPORTS : "reported"
     CONVOS ||--o{ MESSAGES : "contains"
+    MESSAGES ||--o{ REPORTS : "reported"
 ```

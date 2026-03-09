@@ -3,6 +3,12 @@
 
     let { form } = $props();
     let isRegistering = $state(false);
+    let emailInvalid = $state(false);
+
+    function validateEmail(value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        emailInvalid = value.length > 0 && !emailRegex.test(value);
+    }
 </script>
 
 <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -47,9 +53,19 @@
                             name="email"
                             type="email"
                             placeholder="you@example.com"
-                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                            oninput={(e) => validateEmail(e.target.value)}
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:outline-none transition
+                                {emailInvalid 
+                                    ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' 
+                                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'}"
                         />
                     </div>
+                    {#if emailInvalid}
+                        <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                            <span class="material-symbols-rounded text-[14px]">error</span>
+                            Please enter a valid email address
+                        </p>
+                    {/if}
                 </div>
 
                 <div>
@@ -91,7 +107,7 @@
                     type="submit"
                     class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm mt-2"
                 >
-                    {isRegistering ? 'Create Account' : 'Sign In'}
+                    {isRegistering ? 'Next' : 'Sign In'}
                 </button>
             </form>
         </div>

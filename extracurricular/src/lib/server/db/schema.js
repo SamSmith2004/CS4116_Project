@@ -161,4 +161,22 @@ export const banned = pgTable(
 	}
 );
 
+export const reports = pgTable(
+	'reports',
+	{
+		id: uuid('id')
+			.primaryKey()
+			.defaultRandom(),
+		messageId: uuid('message_id')
+			.references(() => messages.id, { onDelete: 'cascade' }),
+		reportedUserId: text('reported_user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		reason: text('reason'),
+		createdAt: timestamp('created_at')
+			.defaultNow()
+			.notNull()
+	}
+);
+
 export * from './auth.schema';
