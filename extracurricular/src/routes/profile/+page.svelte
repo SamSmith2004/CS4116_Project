@@ -34,7 +34,7 @@
         return async ({ result }) => {
             if (result.type === 'success') {
                 window.location.reload();
-            } else if (result.type === 'failure') {
+            } else if (result.type === 'error') {
                 showToast(result.data?.message || 'Something went wrong.');
             }
         };

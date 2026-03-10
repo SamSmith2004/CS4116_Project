@@ -88,6 +88,7 @@ export const actions = {
 
             return { success: true, message: 'Profile updated successfully!' };
         } catch (e) {
+            console.log('updateProfile() error: ' + e);
             return fail(500, { message: 'Something went wrong. Please try again.' });
         }
     }
