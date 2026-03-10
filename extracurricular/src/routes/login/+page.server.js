@@ -53,7 +53,7 @@ export const actions = {
 			path: '/login/register-details',
 			httpOnly: true,
 			sameSite: 'strict',
-			secure: true,
+			secure: false, // INVESTING
 			maxAge: 60 * 10 // 10m
 		});
 		
