@@ -20,6 +20,8 @@ export const actions = {
 		const lname = formData.get('lname');
 		const uni = formData.get('uni');
 		const degree = formData.get('degree');
+		const gender = formData.get('gender');
+		const partnerPref = formData.get('partnerPref');
 
 		const raw = event.cookies.get('signup_temp');
 		if (!raw) return redirect(302, '/login');
@@ -43,7 +45,9 @@ export const actions = {
 				await tx.insert(userDetails).values({
 					userId: res.user.id,
 					university: uni,
-					degree: degree
+					degree: degree,
+					gender: gender,
+					partnerPref: partnerPref
 				});
 
 				const selectedInterests = formData.getAll('interests');
