@@ -1,6 +1,6 @@
 <script>
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/favicon.png';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import { page } from '$app/state';
 
