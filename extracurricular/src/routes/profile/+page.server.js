@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { user, userDetails, interests, interestEnum, partnerPrefEnum, genderEnum } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -53,8 +53,9 @@ export const actions = {
 
             const ext = avatar.name.split('.').pop()?.toLowerCase() || 'jpg';
             const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
-            const filename = `avatar.${safeExt}`;
+            const filename = `${Date.now()}.${safeExt}`;
             const dir = path.join('src/lib/assets/avatars', sessionUser.id.toString());
+            await rm(dir, { recursive: true, force: true });
             await mkdir(dir, { recursive: true });
             const filePath = path.join(dir, filename);
             const buffer = Buffer.from(await avatar.arrayBuffer());
