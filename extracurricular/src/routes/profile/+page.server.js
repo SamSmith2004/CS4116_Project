@@ -54,12 +54,12 @@ export const actions = {
             const ext = avatar.name.split('.').pop()?.toLowerCase() || 'jpg';
             const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
             const filename = `avatar.${safeExt}`;
-            const dir = path.join('static', 'uploads', 'avatars', sessionUser.id);
+            const dir = path.join('src/lib/assets/avatars', sessionUser.id.toString());
             await mkdir(dir, { recursive: true });
             const filePath = path.join(dir, filename);
             const buffer = Buffer.from(await avatar.arrayBuffer());
             await writeFile(filePath, buffer);
-            avatarUrl = `/uploads/avatars/${sessionUser.id}/${filename}`;
+            avatarUrl = `/api/avatars/${sessionUser.id}/${filename}`;
         }
 
         try {
