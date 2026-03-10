@@ -2,6 +2,7 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import Toast from '$lib/components/Toast.svelte';
 	import { page } from '$app/state';
 
 	let { children } = $props();
@@ -58,3 +59,5 @@
 		{@render children()}
 	</main>
 </div>
+
+<Toast />
