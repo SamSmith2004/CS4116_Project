@@ -1,5 +1,6 @@
 <script>
     import { enhance } from '$app/forms';
+    import { showToast } from '$lib/toast.svelte.js';
     let { data } = $props();
 
     // svelte-ignore state_referenced_locally
@@ -38,28 +39,7 @@
             }
         };
     }
-
-    let toast = $state({ show: false, message: '' });
-    let toastTimeout;
-
-    function showToast(message) {
-        clearTimeout(toastTimeout);
-        toast = { show: true, message };
-        toastTimeout = setTimeout(() => { toast = { ...toast, show: false }; }, 4000);
-    }
 </script>
-
-{#if toast.show}
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-slide-up">
-        <div class="flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-medium bg-red-600 text-white">
-            <span class="material-symbols-rounded text-[20px]">error</span>
-            {toast.message}
-            <button onclick={() => toast = { ...toast, show: false }} class="ml-2 hover:opacity-80">
-                <span class="material-symbols-rounded text-[18px]">close</span>
-            </button>
-        </div>
-    </div>
-{/if}
 
 <div class="flex flex-col min-h-screen bg-gray-50">
     <header class="grid grid-cols-3 items-center bg-white py-4 px-8 shadow-sm border-b border-gray-200">
@@ -151,13 +131,3 @@
         </form>
     </main>
 </div>
-
-<style>
-    @keyframes slide-up {
-        from { transform: translateX(-50%) translateY(100%); opacity: 0; }
-        to { transform: translateX(-50%) translateY(0); opacity: 1; }
-    }
-    :global(.animate-slide-up) {
-        animation: slide-up 0.3s ease-out;
-    }
-</style>
