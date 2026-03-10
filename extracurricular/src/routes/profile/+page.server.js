@@ -5,13 +5,6 @@ import { fail } from '@sveltejs/kit';
 import { writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
-/** @type {import('./$types').EntryGenerator} */
-export const config = {
-    body: {
-        maxSize: '100m'
-    }
-};
-
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals }) => {
     const sessionUser = locals.user;
