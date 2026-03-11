@@ -1,10 +1,13 @@
 <script>
     let { data } = $props();
 
-    import { addDays, startOfWeek, format, isSameDay } from 'date-fns';
+    import { enhance } from '$app/forms';
+    import { addDays, startOfWeek, format, isSameDay, parseISO } from 'date-fns';
+    $inspect(data.user);
 
     let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 1 }));
     let days = $derived(Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i)));
+    let showAddEvent = $state(false);
 
     function nextWeek() {
         currentWeekStart = addDays(currentWeekStart, 7);
@@ -16,6 +19,19 @@
 
     function goToToday() {
         currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1});
+    }
+
+    function getEventsAtDay(day) {
+        return data.events.filter(event => isSameDay(parseISO(event.date), day));
+    }
+
+    //important: get position of event 
+    //below: each hour is h-20 ==> 80pixels
+    //return nb of pixels that the event should be 
+    function getTimePos(timeStr){
+        if (!timeStr) return 0;
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return (hours * 80) + (minutes * 80 / 60);
     }
 </script>
 
@@ -36,6 +52,12 @@
                 </button>
             </div>
         </div>
+
+        {#if data.user?.isAdmin}
+            <button onclick={ ()=> showAddEvent = true} class="bg-red text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
+                + New Event
+            </button>
+        {/if}
     </header>
 
     <div class="flex flex-col flex-1 overflow-hidden">
@@ -70,10 +92,38 @@
                 </div>
 
                 {#each days as day}
-                    <div class="relative border-r border-gray-100 group">
-                        </div>
+                    <div class="relative border-r border-gray-100 last:border-0">
+                        {#each getEventsAtDay(day) as event}
+                                <div class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm cursor-pointer hover:bg-blue-200 transition-colors z-10"
+                                    style="top: {getTimePos(event.time)}px;">
+                                    <p class="text-[10px] font-bold text-blue-800 leading-tight">{event.name}</p>
+                                    <p class="text-[9px] text-blue-600 font-medium">{event.time.slice(0,5)}</p>
+                            </div>
+                        {/each}
+                    </div>
                 {/each}
             </div>
         </div>
     </div>
 </div>
+
+{#if showAddEvent}
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <form method="POST" action="?/addEvent" use:enhance={() => { showAddEvent = false; }} class="bg-white p-6 rounded-3xl w-full max-w-md shadow-2xl">
+            <h2 class="text-xl font-bold mb-6">Create New Event</h2>
+            <div class="space-y-4">
+                <input type="text" name="name" placeholder="Event Name" required class="w-full p-3 border rounded-xl" />
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" name="date" required class="p-3 border rounded-xl" />
+                    <input type="time" name="time" required class="p-3 border rounded-xl" />
+                </div>
+                <textarea name="desc" placeholder="Description" class="w-full p-3 border rounded-xl h-24"></textarea>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button type="button" onclick={() => showAddEvent = false} class="flex-1 py-3 text-gray-500 font-bold">Cancel</button>
+                <button type="submit" class="flex-1 py-3 bg-[#0C00BF] text-white rounded-xl font-bold">Create</button>
+            </div>
+        </form>
+    </div>
+{/if} 
+<!--I CANT SEE IT: CHECK IS ADMIN AND LOG OUT THEN TEST-->
