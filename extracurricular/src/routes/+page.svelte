@@ -6,6 +6,6 @@
   }
 </script>
 
-<TopBar placeholder="Search for people..." onSearch={handleSearch} />
+<TopBar placeholder="Search for people...." onSearch={handleSearch} />
 
 <h1 class="text-center mt-5 text-3xl">Home</h1>
