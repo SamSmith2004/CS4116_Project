@@ -44,7 +44,7 @@
 <div class="flex flex-col min-h-screen bg-gray-50">
     <header class="grid grid-cols-3 items-center bg-white py-4 px-8 shadow-sm border-b border-gray-200">
         <div></div>
-        <h1 class="text-center text-2xl font-bold text-gray-800 tracking-widest uppercase">My Profile</h1>
+        <h1 class="text-center text-2xl font-bold text-gray-800 tracking-widest uppercase">Edit Profile</h1>
         <div class="flex justify-end">
             <button form="profile-form" class="bg-[#0C00BF] text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-blue-800 transition-colors">
                 Save
