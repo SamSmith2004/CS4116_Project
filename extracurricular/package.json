@@ -38,6 +38,7 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"date-fns": "^4.1.0",
 		"postgres": "^3.4.8"
 	}
 }
