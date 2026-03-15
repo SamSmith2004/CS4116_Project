@@ -192,6 +192,28 @@
                     </p>
                 </div>
 
+                {#if data.user?.isAdmin}
+                    <div class="mt-8 pt-6 border-t border-gray-100">
+                        <form method="POST" action="?/deleteEvent" use:enhance={() => {
+                            return async ({ result }) => {
+                                if (result.type === 'success') {
+                                    showViewEvent = false; // On ferme le pop-up après suppression
+                                    selectedEvent = null;
+                                }
+                            };
+                        }}>
+                            <input type="hidden" name="id" value={selectedEvent.id} />
+                            <button 
+                                type="submit" 
+                                class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <span class="material-symbols-rounded text-lg">delete</span>
+                                Delete Event
+                            </button>
+                        </form>
+                    </div>
+                {/if}
+
                 <div class="flex items-center gap-4">
                     {#if selectedEvent.url}
                         <a href={selectedEvent.url} target="_blank" class="flex-1 text-center py-3 bg-gray-100 text-gray-900 rounded-xl font-bold hover:bg-gray-200 transition-colors">
