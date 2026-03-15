@@ -9,6 +9,8 @@
     let days = $derived(Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i)));
     let showAddEvent = $state(false);
 
+    const HOUR_HEIGHT = 80; // each hour is h-20 ==> 80pixels
+
     function nextWeek() {
         currentWeekStart = addDays(currentWeekStart, 7);
     }
@@ -26,17 +28,16 @@
     }
 
     //important: get position of event 
-    //below: each hour is h-20 ==> 80pixels
     //return nb of pixels that the event should be 
     function getTimePos(timeStr){
         if (!timeStr) return 0;
         const [hours, minutes] = timeStr.split(':').map(Number);
-        return (hours * 80) + (minutes * 80 / 60);
+        return (hours * HOUR_HEIGHT) + (minutes * HOUR_HEIGHT / 60) - HOUR_HEIGHT;
     }
 
     function getEventHeight(startTime, endTime){
         if(!startTime || !endTime){
-            return 80; // 1hour by default because h-20 ==> 80pixels
+            return HOUR_HEIGHT; // 1hour by default
         }
         const [hStart, mStart] = startTime.split(':').map(Number);
         const [hEnd, mEnd] = endTime.split(':').map(Number);  
@@ -44,7 +45,7 @@
         const startMinutes = (hStart * 60) + mStart;
         const endMinutes = (hEnd * 60) + mEnd;
         const timeLength = endMinutes - startMinutes;
-        return Math.max(20, (timeLength * 80 / 60)); //20 pixels min for visibility 
+        return Math.max(20, (timeLength * HOUR_HEIGHT / 60)); //20 pixels min for visibility 
     }
 </script>
 
@@ -106,8 +107,9 @@
 
                 {#each days as day}
                     <div class="relative border-r border-gray-100 last:border-0">
-                        {#each getEventsAtDay(day) as event}
-                                <div class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm z-10" style="top: {getTimePos(event.time)}px; height: {getEventHeight(event.time, event.endTime)}px;">
+                        {#each getEventsAtDay(day) as event} <!-- recheck here It does not work for the moment-->
+                            <div class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm z-10" 
+                                style="top: {getTimePos(event.time)}px; height: {getEventHeight(event.time, event.endTime)}px;">
                                 <p class="text-[10px] font-bold text-blue-800 leading-tight truncate">{event.name}</p>
                                 <p class="text-[9px] text-blue-600 font-medium">
                                     {event.time.slice(0,5)} - {event.endTime?.slice(0,5) || '?'}
