@@ -8,6 +8,8 @@
     let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 1 }));
     let days = $derived(Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i)));
     let showAddEvent = $state(false);
+    let showViewEvent = $state(false);
+    let selectedEvent = $state(null);
 
     const HOUR_HEIGHT = 80; // each hour is h-20 ==> 80pixels
 
@@ -32,7 +34,7 @@
     function getTimePos(timeStr){
         if (!timeStr) return 0;
         const [hours, minutes] = timeStr.split(':').map(Number);
-        return (hours * HOUR_HEIGHT) + (minutes * HOUR_HEIGHT / 60) - HOUR_HEIGHT;
+        return (hours * HOUR_HEIGHT) + (minutes * HOUR_HEIGHT / 60);
     }
 
     function getEventHeight(startTime, endTime){
@@ -46,6 +48,11 @@
         const endMinutes = (hEnd * 60) + mEnd;
         const timeLength = endMinutes - startMinutes;
         return Math.max(20, (timeLength * HOUR_HEIGHT / 60)); //20 pixels min for visibility 
+    }
+
+    function openEventDetails(event){
+        selectedEvent = event;
+        showViewEvent = true;
     }
 </script>
 
@@ -107,14 +114,18 @@
 
                 {#each days as day}
                     <div class="relative border-r border-gray-100 last:border-0">
-                        {#each getEventsAtDay(day) as event} <!-- recheck here It does not work for the moment-->
-                            <div class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm z-10" 
-                                style="top: {getTimePos(event.time)}px; height: {getEventHeight(event.time, event.endTime)}px;">
+                        {#each getEventsAtDay(day) as event} 
+                            <button 
+                                type="button"
+                                onclick={() => openEventDetails(event)} 
+                                class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm z-10 overflow-hidden text-left hover:bg-blue-200 transition-colors" 
+                                style="top: {getTimePos(event.time)}px; height: {getEventHeight(event.time, event.endTime)}px;"
+                            >
                                 <p class="text-[10px] font-bold text-blue-800 leading-tight truncate">{event.name}</p>
                                 <p class="text-[9px] text-blue-600 font-medium">
                                     {event.time.slice(0,5)} - {event.endTime?.slice(0,5) || '?'}
                                 </p>
-                            </div>
+                            </button>
                         {/each}
                     </div>
                 {/each}
@@ -143,4 +154,54 @@
         </form>
     </div>
 {/if} 
+
+{#if showViewEvent && selectedEvent}
+        <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative">
+            <button onclick={() => showViewEvent = false} class="absolute top-4 right-4 p-2 bg-white/80 hover:bg-white rounded-full shadow-md z-10">
+                <span class="material-symbols-rounded">close</span>
+            </button>
+
+            {#if selectedEvent.imgUrl}
+                <div class="w-full h-48 bg-gray-200">
+                    <img src={selectedEvent.imgUrl} alt={selectedEvent.name} class="w-full h-full object-cover" />
+                </div>
+            {/if}
+
+            <div class="p-8">
+                <div class="mb-6">
+                    <p class="text-blue-600 text-xs font-bold uppercase tracking-widest mb-1">Event Details</p>
+                    <h2 class="text-3xl font-black text-gray-900 leading-tight">{selectedEvent.name}</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <span class="material-symbols-rounded text-blue-600">calendar_today</span>
+                        <span class="font-bold">{format(parseISO(selectedEvent.date), 'EEEE dd MMMM')}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <span class="material-symbols-rounded text-blue-600">schedule</span>
+                        <span class="font-bold">{selectedEvent.time.slice(0,5)} - {selectedEvent.endTime?.slice(0,5)}</span>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-2">Description</p>
+                    <p class="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                        {selectedEvent.desc || "No description provided for this event."}
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    {#if selectedEvent.url}
+                        <a href={selectedEvent.url} target="_blank" class="flex-1 text-center py-3 bg-gray-100 text-gray-900 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                            Visit Website
+                        </a>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+{/if} 
+
 
