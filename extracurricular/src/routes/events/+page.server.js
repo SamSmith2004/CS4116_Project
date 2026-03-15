@@ -27,6 +27,7 @@ export const actions = {
         const date = formData.get('date');
         const time = formData.get('time');
         const description = formData.get('desc');
+        const endTime = formData.get('endTime');
 
         try {
             await db.insert(events).values({
@@ -34,10 +35,11 @@ export const actions = {
                 date,
                 time,
                 desc: description,
+                endTime,
             });
             return {success: true};
         } catch(e){
-            return fail(400, {message: "creating event failed..."});
+            return fail(500, {message: "creating event failed..."});
         }
 
 

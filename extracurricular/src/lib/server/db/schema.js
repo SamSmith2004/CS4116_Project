@@ -106,7 +106,8 @@ export const events = pgTable(
 		url: varchar('url', { length: 256 }),
 		imgUrl: varchar('img_url', { length: 256 }),
 		date: date('date'),
-		time: time('time')
+		time: time('time'),
+		endTime: time('end_time')
 	},
 	(table) => [index('events_date_idx').on(table.date)]
 );

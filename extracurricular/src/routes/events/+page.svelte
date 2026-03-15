@@ -33,6 +33,19 @@
         const [hours, minutes] = timeStr.split(':').map(Number);
         return (hours * 80) + (minutes * 80 / 60);
     }
+
+    function getEventHeight(startTime, endTime){
+        if(!startTime || !endTime){
+            return 80; // 1hour by default because h-20 ==> 80pixels
+        }
+        const [hStart, mStart] = startTime.split(':').map(Number);
+        const [hEnd, mEnd] = endTime.split(':').map(Number);  
+
+        const startMinutes = (hStart * 60) + mStart;
+        const endMinutes = (hEnd * 60) + mEnd;
+        const timeLength = endMinutes - startMinutes;
+        return Math.max(20, (timeLength * 80 / 60)); //20 pixels min for visibility 
+    }
 </script>
 
 <div class="flex flex-col h-screen bg-white">
@@ -54,7 +67,7 @@
         </div>
 
         {#if data.user?.isAdmin}
-            <button onclick={ ()=> showAddEvent = true} class="bg-red text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
+            <button onclick={ ()=> showAddEvent = true} class="bg-red text-red px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
                 + New Event
             </button>
         {/if}
@@ -94,10 +107,11 @@
                 {#each days as day}
                     <div class="relative border-r border-gray-100 last:border-0">
                         {#each getEventsAtDay(day) as event}
-                                <div class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm cursor-pointer hover:bg-blue-200 transition-colors z-10"
-                                    style="top: {getTimePos(event.time)}px;">
-                                    <p class="text-[10px] font-bold text-blue-800 leading-tight">{event.name}</p>
-                                    <p class="text-[9px] text-blue-600 font-medium">{event.time.slice(0,5)}</p>
+                                <div class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm z-10" style="top: {getTimePos(event.time)}px; height: {getEventHeight(event.time, event.endTime)}px;">
+                                <p class="text-[10px] font-bold text-blue-800 leading-tight truncate">{event.name}</p>
+                                <p class="text-[9px] text-blue-600 font-medium">
+                                    {event.time.slice(0,5)} - {event.endTime?.slice(0,5) || '?'}
+                                </p>
                             </div>
                         {/each}
                     </div>
@@ -113,9 +127,10 @@
             <h2 class="text-xl font-bold mb-6">Create New Event</h2>
             <div class="space-y-4">
                 <input type="text" name="name" placeholder="Event Name" required class="w-full p-3 border rounded-xl" />
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <input type="date" name="date" required class="p-3 border rounded-xl" />
                     <input type="time" name="time" required class="p-3 border rounded-xl" />
+                    <input type="time" name="endTime" required class="p-3 border rounded-xl" />
                 </div>
                 <textarea name="desc" placeholder="Description" class="w-full p-3 border rounded-xl h-24"></textarea>
             </div>
@@ -126,4 +141,4 @@
         </form>
     </div>
 {/if} 
-<!--I CANT SEE IT: CHECK IS ADMIN AND LOG OUT THEN TEST-->
+
