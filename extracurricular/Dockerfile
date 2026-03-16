@@ -24,6 +24,7 @@ WORKDIR /app
 COPY --from=builder /app/build build/
 COPY --from=builder /app/node_modules node_modules/
 COPY package.json .
+RUN mkdir -p /app/uploads
 # allow overriding the port via environment; default to 5173 if you'd like
 ENV NODE_ENV=production
 ENV BODY_SIZE_LIMIT=100M

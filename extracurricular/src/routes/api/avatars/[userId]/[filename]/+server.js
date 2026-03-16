@@ -9,7 +9,7 @@ const MIME_TYPES = {
     webp: 'image/webp'
 };
 
-const AVATARS_DIR = 'src/lib/assets/avatars';
+const AVATARS_DIR = '/app/uploads';
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ params }) {
