@@ -2,33 +2,29 @@
     import TopBar from '$lib/components/TopBar.svelte';
     import ConvoPreview from '$lib/components/ConvoPreview.svelte';
 
-    // TODO: Replace with real data
-    const names = [ 
-        'Alice Murphy', 'Brian Kelly', 'Ciara Smith', 'Dylan Reeves',
-        'Emma Walsh', 'Fionn Gallagher', 'Grace Nolan', 'Hugo Brennan',
-        'Saoirse Flynn', 'Liam Doyle', 'Aoife Byrne', 'Oisín McCarthy',
-        'Niamh Kavanagh', 'Conor Duffy', 'Róisín Healy', 'Cian Moran',
-        'Éabha Daly', 'Seán Fitzgerald', 'Méabh Connolly', 'Darragh Quinn'
-    ];
-    const conversations = names.map((name, i) => ({
-        id: i + 1,
-        name,
-        lastMessage: 'Hello',
-        time: `${i}m ago`,
-        avatarColor: 'bg-indigo-500'
-    }));
+    import { page } from '$app/stores';
+    let { data } = $props();
 
     let searchQuery = $state('');
     function handleSearch(query) {
         searchQuery = query;
     }
 
+    // svelte-ignore state_referenced_locally
+    const conversations = (data?.conversations || []).map((c) => ({
+        id: c.id,
+        name: c.otherUser?.name || 'Unknown',
+        lastMessage: c.lastMessage || '',
+        time: c.timestamp ? new Date(c.timestamp).toLocaleString() : '',
+        avatarColor: 'bg-indigo-500'
+    }));
+
     let filtered = $derived(
         searchQuery
-            ? conversations.filter(c =>
-                c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-            )
+            ? conversations.filter((c) =>
+                  c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+              )
             : conversations
     );
 </script>

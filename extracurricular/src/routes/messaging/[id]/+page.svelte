@@ -2,7 +2,7 @@
     import { tick } from 'svelte';
     import { page } from '$app/stores';
 
-    export let data;
+    let { data } = $props();
 
     let convoId = $page.params?.id;
     let partnerName = data?.otherUser?.name || 'Unknown';
