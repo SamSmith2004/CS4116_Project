@@ -1,70 +1,63 @@
 <script>
-    import { page } from '$app/stores';
     import { tick } from 'svelte';
+    import { page } from '$app/stores';
 
-    const mockNames = {
-        '1': 'Alice Murphy',
-        '2': 'Brian Kelly',
-        '3': 'Ciara Smith',
-        '4': 'Dylan Reeves',
-        '5': 'Emma Walsh',
-        '6': 'Fionn Gallagher',
-        '7': 'Grace Nolan',
-        '8': 'Hugo Brennan',
-        '9': 'Saoirse Flynn',
-        '10': 'Liam Doyle',
-        '11': 'Aoife Byrne',
-        '12': 'Oisín McCarthy',
-        '13': 'Niamh Kavanagh',
-        '14': 'Conor Duffy',
-        '15': 'Róisín Healy',
-        '16': 'Cian Moran',
-        '17': 'Éabha Daly',
-        '18': 'Seán Fitzgerald',
-        '19': 'Méabh Connolly',
-        '20': 'Darragh Quinn'
-    };
+    export let data;
 
-    let convoId = '';
-    let partnerName = 'Unknown';
-    let messages = [];
+    let convoId = $page.params?.id;
+    let partnerName = data?.otherUser?.name || 'Unknown';
+    let messages = (data?.messages || []).map((m, idx) => ({
+        id: m.id || idx,
+        text: m.text,
+        mediaUrl: m.mediaUrl,
+        sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
+        time: m.timestamp
+    }));
+
     let newMessage = '';
+    let fileInput;
+    let formEl;
+    let sending = false;
 
-    function generateMessages() {
-        return [
-            { id: 0, text: 'Hello! How are you?', sender: 'sender', time: '1m ago' },
-            { id: 1, text: "I\'m good, thanks!", sender: 'receiver', time: 'now' }
-        ];
-    }
-
-    $: {
-        const params = $page.params;
-        convoId = params.id;
-        if (convoId) {
-            partnerName = mockNames[convoId] || 'Unknown';
-            messages = generateMessages();
-        }
-    }
-    
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            handleSubmit();
         }
     }
 
-    async function sendMessage() {
-        if (newMessage.trim()) {
-            messages = [
-                ...messages,
-                { id: messages.length, text: newMessage, sender: 'sender', time: 'now' }
-            ];
-            newMessage = '';
+    async function handleSubmit() {
+        if (sending) return;
+        const content = newMessage.trim();
+        const file = fileInput?.files?.[0];
+        if (!content && !file) return;
 
-            // scroll to latest, 'tick' gives moment for DOM to get new element before selecting 'messageContainer'
-            await tick();
-            const container = document.getElementById('messageContainer');
-            container?.scrollTo(0, container.scrollHeight);
+        sending = true;
+        try {
+            const formData = new FormData(formEl);
+            const res = await fetch(formEl.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                messages = [
+                    ...messages,
+                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, sender: 'sender', time: 'now' }
+                ];
+                newMessage = '';
+                if (fileInput) fileInput.value = '';
+
+                await tick();
+                const container = document.getElementById('messageContainer');
+                container?.scrollTo(0, container.scrollHeight);
+            } else {
+                console.error('Send failed', res.statusText);
+            }
+        } catch (e) {
+            console.error('Send error', e);
+        } finally {
+            sending = false;
         }
     }
 </script>
@@ -91,22 +84,30 @@
     </div>
 
     <div class="border-t border-gray-200 p-4 bg-white">
-        <div class="flex gap-2">
+        <form bind:this={formEl} action="?/sendMessage" class="flex gap-2 w-full" on:submit|preventDefault={handleSubmit} enctype="multipart/form-data">
+            <input type="hidden" name="receiverId" value={data?.otherUser?.id || ''} />
+            <input type="file" name="media" accept="image/*" bind:this={fileInput} class="hidden" id="fileInput" />
             <textarea
+                name="content"
                 bind:value={newMessage}
                 placeholder="Type a message..."
                 rows="1"
                 class="flex-1 px-4 py-2 border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                 on:keydown={handleKeydown}
             ></textarea>
-            <button
-                class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50"
-                on:click={sendMessage}
-                disabled={!newMessage.trim()}
-            >
-                Send
-            </button>
-        </div>
+            <div class="flex items-center gap-2">
+                <button type="button" class="px-3 py-2 bg-gray-100 rounded-full" on:click={() => fileInput && fileInput.click()} title="Attach image">
+                    📎
+                </button>
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50"
+                    disabled={sending || (!newMessage.trim() && !(fileInput?.files?.length > 0))}
+                >
+                    {sending ? 'Sending…' : 'Send'}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

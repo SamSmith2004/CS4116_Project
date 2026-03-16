@@ -98,12 +98,13 @@ export const actions = {
                 mediaUrl = `/api/messages/${sessionUser.id}/${filename}`;
             }
 
-            db.insert(messagesTable).values({
-                text: messages.text,
-                mediaUrl: messages.mediaUrl,
-                senderId: messages.senderId,
-                receiverId: messages.receiverId,
-            })
+            await db.insert(messagesTable).values({
+                convoId,
+                text: content || null, // null is to allow image only messages
+                mediaUrl,
+                senderId: sessionUser.id,
+                receiverId
+            });
 
             return { success: true, message: 'Message Sent' };
         } catch (e) {
