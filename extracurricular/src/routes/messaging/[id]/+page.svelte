@@ -6,9 +6,9 @@
     import formatTime from '$lib/utils/time.js';
 
     let { data } = $props();
-    let convoId = $derived(page => page.params?.id);
+    let convoId = $state($page.params?.id);
 
-    // TODO: Images + make reactive
+    // TODO: Images
     
     // svelte-ignore state_referenced_locally
     const partnerName = data?.otherUser?.name || 'Unknown';
@@ -20,6 +20,8 @@
         sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
         time: m.timestamp ? formatTime(m.timestamp) : ''
     })));
+
+    let pollInterval = null; //TODO: look into possibly websockets
 
     let newMessage = $state('');
     let fileInput = $state(null);
@@ -80,10 +82,30 @@
             container.scrollTo(0, container.scrollHeight);
         });
         _msgObserver.observe(container, { childList: true, subtree: true });
+
+        // Poll messages every 5 seconds
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/messaging/${convoId}/messages`);
+                if (!res.ok) return;
+                const json = await res.json();
+                const newMsgs = (json.messages || []).map((m) => ({
+                    id: m.id,
+                    text: m.text,
+                    mediaUrl: m.mediaUrl,
+                    sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
+                    time: m.timestamp ? formatTime(m.timestamp) : ''
+                }));
+                messages = newMsgs;
+            } catch (e) {
+                // ignore polling errors
+            }
+        }, 5000);
     });
 
     onDestroy(() => {
         _msgObserver?.disconnect();
+        if (pollInterval) clearInterval(pollInterval);
     });
 </script>
 

@@ -4,6 +4,7 @@
     import formatTime from '$lib/utils/time.js';
 
     import { page } from '$app/stores';
+	import { onMount } from 'svelte';
     let { data } = $props();
 
     let searchQuery = $state('');
@@ -11,7 +12,9 @@
         searchQuery = query;
     }
 
-    const conversations =$derived((data?.conversations).map((c) => ({
+    let pollInterval = null; //TODO: look into possibly websockets
+
+    let conversations = $derived((data?.conversations).map((c) => ({
         id: c.id,
         name: c.otherUser?.name || 'Unknown',
         lastMessage: c.lastMessage || '',
@@ -27,6 +30,27 @@
               )
             : conversations
     );
+
+    onMount(() => {
+        // Poll messages every 5 seconds
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/messaging/convos`);
+                if (!res.ok) return;
+                const json = await res.json();
+                const newConvos = json.conversations?.map((c) => ({
+                    id: c.id,
+                    name: c.otherUser?.name || 'Unknown',
+                    lastMessage: c.lastMessage || '',
+                    time: c.timestamp ? formatTime(c.timestamp) : '',
+                    avatarColor: 'bg-indigo-500'
+                }));
+                conversations = newConvos;
+            } catch (e) {
+                // ignore polling errors
+            }
+        }, 5000);
+    });
 </script>
 
 <TopBar placeholder="Filter conversations" onSearch={handleSearch} />
