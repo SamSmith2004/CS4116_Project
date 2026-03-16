@@ -1,6 +1,8 @@
 <script>
     import { tick, onMount, onDestroy } from 'svelte';
     import { page } from '$app/stores';
+    import Toast from '$lib/components/Toast.svelte';
+    import { showToast } from '$lib/toast.svelte.js';
     import formatTime from '$lib/utils/time.js';
 
     let { data } = $props();
@@ -59,10 +61,10 @@
                 const container = messageContainer || document.getElementById('messageContainer');
                 container?.scrollTo(0, container.scrollHeight);
             } else {
-                console.error('Send failed', res.statusText);
+                showToast('Send failed: ' + (res.statusText || res.status), 'error');
             }
         } catch (e) {
-            console.error('Send error', e);
+            showToast('Send error: ' + (e?.message || e), 'error');
         } finally {
             sending = false;
         }
@@ -92,6 +94,8 @@
         </a>
         <h2 class="text-lg font-semibold text-gray-900 truncate">{partnerName}</h2>
     </header>
+
+    <Toast />
 
     <div id="messageContainer" bind:this={messageContainer} class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {#each messages as msg (msg.id)}
