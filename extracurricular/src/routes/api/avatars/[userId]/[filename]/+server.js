@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const MIME_TYPES = {
@@ -27,7 +27,7 @@ export async function GET({ params }) {
         throw error(400, 'Invalid file type');
     }
 
-    const filePath = path.join(AVATARS_DIR, userId, filename);
+    const filePath = path.join(AVATARS_DIR, userId, 'avatar', filename);
 
     try {
         const file = await readFile(filePath);
