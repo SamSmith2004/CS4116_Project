@@ -10,14 +10,13 @@
         searchQuery = query;
     }
 
-    // svelte-ignore state_referenced_locally
-    const conversations = (data?.conversations || []).map((c) => ({
+    const conversations =$derived((data?.conversations).map((c) => ({
         id: c.id,
         name: c.otherUser?.name || 'Unknown',
         lastMessage: c.lastMessage || '',
         time: c.timestamp ? new Date(c.timestamp).toLocaleString() : '',
         avatarColor: 'bg-indigo-500'
-    }));
+    })));
 
     let filtered = $derived(
         searchQuery
