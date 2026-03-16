@@ -1,9 +1,11 @@
 <script>
-    import { tick } from 'svelte';
+    import { tick, onMount, onDestroy } from 'svelte';
     import { page } from '$app/stores';
 
     let { data } = $props();
     let convoId = $derived(page => page.params?.id);
+
+    // TODO: Images + timje formatting
     
     // svelte-ignore state_referenced_locally
     const partnerName = data?.otherUser?.name || 'Unknown';
@@ -20,6 +22,8 @@
     let fileInput = $state(null);
     let formEl = $state(null);
     let sending = $state(false);
+    let messageContainer = null;
+    let _msgObserver = null;
 
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -51,7 +55,7 @@
                 if (fileInput) fileInput.value = '';
 
                 await tick();
-                const container = document.getElementById('messageContainer');
+                const container = messageContainer || document.getElementById('messageContainer');
                 container?.scrollTo(0, container.scrollHeight);
             } else {
                 console.error('Send failed', res.statusText);
@@ -62,6 +66,22 @@
             sending = false;
         }
     }
+
+    onMount(() => {
+        // Auto-scroll to latest message
+        const container = messageContainer || document.getElementById('messageContainer');
+        if (!container) return;
+        container.scrollTo(0, container.scrollHeight);
+
+        _msgObserver = new MutationObserver(() => {
+            container.scrollTo(0, container.scrollHeight);
+        });
+        _msgObserver.observe(container, { childList: true, subtree: true });
+    });
+
+    onDestroy(() => {
+        _msgObserver?.disconnect();
+    });
 </script>
 
 <div class="flex flex-col h-screen">
@@ -72,7 +92,7 @@
         <h2 class="text-lg font-semibold text-gray-900 truncate">{partnerName}</h2>
     </header>
 
-    <div id="messageContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+    <div id="messageContainer" bind:this={messageContainer} class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {#each messages as msg (msg.id)}
             <div class="flex {msg.sender === 'sender' ? 'justify-end' : 'justify-start'}">
                 <div class="max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden
