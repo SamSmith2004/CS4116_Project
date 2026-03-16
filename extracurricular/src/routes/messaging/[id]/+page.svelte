@@ -3,21 +3,23 @@
     import { page } from '$app/stores';
 
     let { data } = $props();
+    let convoId = $derived(page => page.params?.id);
+    
+    // svelte-ignore state_referenced_locally
+    const partnerName = data?.otherUser?.name || 'Unknown';
 
-    let convoId = $page.params?.id;
-    let partnerName = data?.otherUser?.name || 'Unknown';
-    let messages = (data?.messages || []).map((m, idx) => ({
+    let messages = $derived((data?.messages || []).map((m, idx) => ({
         id: m.id || idx,
         text: m.text,
         mediaUrl: m.mediaUrl,
         sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
         time: m.timestamp
-    }));
+    })));
 
-    let newMessage = '';
-    let fileInput;
-    let formEl;
-    let sending = false;
+    let newMessage = $state('');
+    let fileInput = $state(null);
+    let formEl = $state(null);
+    let sending = $state(false);
 
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -26,7 +28,7 @@
         }
     }
 
-    async function handleSubmit() {
+    async function handleSubmit(e) {
         if (sending) return;
         const content = newMessage.trim();
         const file = fileInput?.files?.[0];
@@ -84,7 +86,7 @@
     </div>
 
     <div class="border-t border-gray-200 p-4 bg-white">
-        <form bind:this={formEl} action="?/sendMessage" class="flex gap-2 w-full" on:submit|preventDefault={handleSubmit} enctype="multipart/form-data">
+        <form bind:this={formEl} action="?/sendMessage" class="flex gap-2 w-full" onsubmit={handleSubmit} enctype="multipart/form-data">
             <input type="hidden" name="receiverId" value={data?.otherUser?.id || ''} />
             <input type="file" name="media" accept="image/*" bind:this={fileInput} class="hidden" id="fileInput" />
             <textarea
@@ -93,10 +95,10 @@
                 placeholder="Type a message..."
                 rows="1"
                 class="flex-1 px-4 py-2 border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                on:keydown={handleKeydown}
+                onkeydown={handleKeydown}
             ></textarea>
             <div class="flex items-center gap-2">
-                <button type="button" class="px-3 py-2 bg-gray-100 rounded-full" on:click={() => fileInput && fileInput.click()} title="Attach image">
+                <button type="button" class="px-3 py-2 bg-gray-100 rounded-full" onclick={() => document.getElementById('fileInput')?.click()} title="Attach image">
                     📎
                 </button>
                 <button

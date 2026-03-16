@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { convos, messages, user, userDetails } from '$lib/server/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { eq, or, desc } from 'drizzle-orm';
 
 export const load = async ({ locals }) => {
     const userId = locals.user?.id;
@@ -24,7 +24,7 @@ export const load = async ({ locals }) => {
                 .select({ text: messages.text, timestamp: messages.timestamp })
                 .from(messages)
                 .where(eq(messages.convoId, c.id))
-                .orderBy(messages.timestamp, 'desc')
+                .orderBy(desc(messages.timestamp))
                 .limit(1);
 
             return {
