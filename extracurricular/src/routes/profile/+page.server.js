@@ -55,7 +55,7 @@ export const actions = {
 
             const ext = avatar.name.split('.').pop()?.toLowerCase() || 'jpg';
             const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
-            const filename = `${Date.now()}.${safeExt}`;
+            const filename = `${sessionUser.id}_${Date.now()}.${safeExt}`;
             const dir = path.join('/app/uploads', sessionUser.id.toString());
             await rm(dir, { recursive: true, force: true });
             await mkdir(dir, { recursive: true });
