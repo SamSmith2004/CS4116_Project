@@ -2,10 +2,12 @@
     import { enhance } from '$app/forms';
 
     /** @type {import('./$types').PageProps} */
-    let { form } = $props();
+    let { form, data } = $props();
 
     const availableInterests = ['Hiking', 'Music', 'Gaming', 'Reading', 'Movies', 'Cycling', 'Sport', 'Swimming', 'Fishing', 'Computers'];
     let interests = $state([]);
+    let allUniversities = $derived(data.allUniversities || []);
+    let allDegrees = $derived(data.allDegrees || []);
 
     function toggleInterest(interest) {
         if (interests.includes(interest)) {
@@ -64,7 +66,9 @@
                         class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
                     >
                         <option value="" disabled selected>Select your university</option>
-                        <option value="University of Limerick">University of Limerick</option>
+                        {#each allUniversities as u}
+                            <option value={u}>{u}</option>
+                        {/each}
                     </select>
                 </div>
 
@@ -77,7 +81,9 @@
                         class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
                     >
                         <option value="" disabled selected>Select your degree</option>
-                        <option value="Computer Science">Computer Science</option>
+                        {#each allDegrees as d}
+                            <option value={d}>{d}</option>
+                        {/each}
                     </select>
                 </div>
 

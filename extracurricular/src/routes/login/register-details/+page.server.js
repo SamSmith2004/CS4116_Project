@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { auth } from '$lib/server/auth';
 import { APIError } from 'better-auth/api';
 import { db } from '$lib/server/db';
-import { userDetails, interests } from '$lib/server/db/schema';
+import { userDetails, interests, universityEnum, degreeEnum } from '$lib/server/db/schema';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load(event) {
@@ -10,7 +10,10 @@ export async function load(event) {
     if (!raw) {
         return redirect(302, '/login');
     }
-    return {};
+	return {
+		allUniversities: universityEnum.enumValues,
+		allDegrees: degreeEnum.enumValues
+	};
 };
 
 export const actions = {

@@ -14,13 +14,27 @@ import { user } from './auth.schema';
 
 /** Enums */
 export const universityEnum = pgEnum('university', [
-	'University of Limerick'
-	// TODO
+	'University of Limerick',
+	'University College Cork',
+	'Trinity College Dublin',
+	'Dublin City University',
+	'University College Dublin',
+	'University of Galway',
+	'Maynooth University'
 ]);
 
 export const degreeEnum = pgEnum('degree', [
-	'Computer Science'
-	// TODO
+	'Computer Science',
+	'Chemistry',
+	'History',
+	'Physics',
+	'Mathematics',
+	'Economics',
+	'Business',
+	'Medical',
+	'Psychology',
+	'Politcal Science',
+	'Engineering'
 ]);
 
 export const interestEnum = pgEnum('interest', [
@@ -106,7 +120,8 @@ export const events = pgTable(
 		url: varchar('url', { length: 256 }),
 		imgUrl: varchar('img_url', { length: 256 }),
 		date: date('date'),
-		time: time('time')
+		time: time('time'),
+		end_time: time('end_time')
 	},
 	(table) => [index('events_date_idx').on(table.date)]
 );

@@ -18,6 +18,8 @@
     let allInterests = $derived(data.allInterests || []);
     let allGenders = $derived(data.allGenders || []);
     let allPartnerPrefs = $derived(data.allPartnerPrefs || []);
+    let allUniversities = $derived(data.allUniversities || []);
+    let allDegrees = $derived(data.allDegrees || []);
 
     // svelte-ignore state_referenced_locally
     let avatarPreview = $state(data.details?.avatarUrl || '');
@@ -82,12 +84,16 @@
 
                         <select name="university" bind:value={profile.university} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
                             <option value="" disabled>Select University</option>
-                            <option value="University of Limerick">University of Limerick</option>
+                            {#each allUniversities as u}
+                                <option value={u}>{u}</option>
+                            {/each}
                         </select>
 
                         <select name="degree" bind:value={profile.degree} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
                             <option value="" disabled>Select Degree</option>
-                            <option value="Computer Science">Computer Science</option>
+                            {#each allDegrees as d}
+                                <option value={d}>{d}</option>
+                            {/each}
                         </select>
 
                         <select name="gender" bind:value={profile.gender} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">

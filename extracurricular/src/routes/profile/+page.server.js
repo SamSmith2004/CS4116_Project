@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { user, userDetails, interests, interestEnum, partnerPrefEnum, genderEnum } from '$lib/server/db/schema';
+import { user, userDetails, interests, interestEnum, partnerPrefEnum, genderEnum, universityEnum, degreeEnum } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import { writeFile, mkdir, rm } from 'node:fs/promises';
@@ -18,6 +18,8 @@ export const load = async ({ locals }) => {
         details: details,
         userInterests: userInterests.map(i => i.interest),
         allInterests: interestEnum.enumValues,
+        allUniversities: universityEnum.enumValues,
+        allDegrees: degreeEnum.enumValues,
         allPartnerPrefs: partnerPrefEnum.enumValues,
         allGenders: genderEnum.enumValues
     };
