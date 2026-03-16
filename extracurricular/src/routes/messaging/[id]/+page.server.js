@@ -90,7 +90,7 @@ export const actions = {
                 const ext = media.name.split('.').pop()?.toLowerCase() || 'jpg';
                 const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
                 const filename = `${Date.now()}.${safeExt}`;
-                const dir = path.join('src/lib/assets/messages', sessionUser.id.toString());
+                const dir = path.join('/app/uploads', sessionUser.id.toString(), 'messages');
                 await mkdir(dir, { recursive: true });
                 const filePath = path.join(dir, filename);
                 const buffer = Buffer.from(await media.arrayBuffer());
