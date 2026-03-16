@@ -1,10 +1,11 @@
 import { db } from '$lib/server/db';
 import { convos, messages, user, userDetails } from '$lib/server/db/schema';
 import { eq, or, desc } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
 
 export const load = async ({ locals }) => {
     const userId = locals.user?.id;
-    if (!userId) return fail(400, { message: 'Inavlid userId'});
+    if (!userId) return fail(400, { message: 'Invalid userId'});
 
     const rows = await db.select().from(convos).where(
         or(eq(convos.user1, userId), eq(convos.user2, userId))
@@ -35,6 +36,13 @@ export const load = async ({ locals }) => {
             };
         })
     );
+
+    // Latest convo at top
+    conversations.sort((a, b) => {
+        const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+        return tb - ta;
+    });
 
     return { conversations, userId };
 };

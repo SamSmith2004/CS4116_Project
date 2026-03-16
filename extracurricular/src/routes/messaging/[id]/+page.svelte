@@ -1,11 +1,12 @@
 <script>
     import { tick, onMount, onDestroy } from 'svelte';
     import { page } from '$app/stores';
+    import formatTime from '$lib/utils/time.js';
 
     let { data } = $props();
     let convoId = $derived(page => page.params?.id);
 
-    // TODO: Images + timje formatting
+    // TODO: Images + make reactive
     
     // svelte-ignore state_referenced_locally
     const partnerName = data?.otherUser?.name || 'Unknown';
@@ -15,7 +16,7 @@
         text: m.text,
         mediaUrl: m.mediaUrl,
         sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
-        time: m.timestamp
+        time: m.timestamp ? formatTime(m.timestamp) : ''
     })));
 
     let newMessage = $state('');
@@ -49,7 +50,7 @@
             if (res.ok) {
                 messages = [
                     ...messages,
-                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, sender: 'sender', time: 'now' }
+                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, sender: 'sender', time: formatTime(Date.now()) }
                 ];
                 newMessage = '';
                 if (fileInput) fileInput.value = '';

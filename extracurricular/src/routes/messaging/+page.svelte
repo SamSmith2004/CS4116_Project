@@ -1,6 +1,7 @@
 <script>
     import TopBar from '$lib/components/TopBar.svelte';
     import ConvoPreview from '$lib/components/ConvoPreview.svelte';
+    import formatTime from '$lib/utils/time.js';
 
     import { page } from '$app/stores';
     let { data } = $props();
@@ -14,7 +15,7 @@
         id: c.id,
         name: c.otherUser?.name || 'Unknown',
         lastMessage: c.lastMessage || '',
-        time: c.timestamp ? new Date(c.timestamp).toLocaleString() : '',
+        time: c.timestamp ? formatTime(c.timestamp) : '',
         avatarColor: 'bg-indigo-500'
     })));
 
