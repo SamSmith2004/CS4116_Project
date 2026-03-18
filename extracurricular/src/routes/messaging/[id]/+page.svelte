@@ -7,8 +7,6 @@
 
     let { data } = $props();
     let convoId = $state($page.params?.id);
-
-    // TODO: Images
     
     // svelte-ignore state_referenced_locally
     const partnerName = data?.otherUser?.name || 'Unknown';
@@ -25,6 +23,7 @@
 
     let newMessage = $state('');
     let fileInput = $state(null);
+    let attachedFileName = $state('');
     let formEl = $state(null);
     let sending = $state(false);
     let messageContainer = null;
@@ -61,6 +60,7 @@
                 ];
                 newMessage = '';
                 if (fileInput) fileInput.value = '';
+                attachedFileName = '';
 
                 await tick();
                 const container = messageContainer || document.getElementById('messageContainer');
@@ -157,9 +157,20 @@
     </div>
 
     <div class="border-t border-gray-200 p-4 bg-white">
+        <input type="file" name="media" accept="image/*" bind:this={fileInput} class="hidden" id="fileInput" onchange={() => { attachedFileName = fileInput?.files?.[0]?.name || ''; }} />
+
+        {#if attachedFileName}
+            <div class="mb-2 w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-symbols-rounded text-gray-600">attach_file</span>
+                    <span class="text-sm text-gray-700 truncate">{attachedFileName}</span>
+                </div>
+                <button type="button" class="text-sm text-gray-500 ml-3" onclick={() => { if (fileInput) fileInput.value = ''; attachedFileName = ''; }} aria-label="Remove attachment">Remove</button>
+            </div>
+        {/if}
+
         <form bind:this={formEl} action="?/sendMessage" class="flex gap-2 w-full" onsubmit={handleSubmit} enctype="multipart/form-data">
             <input type="hidden" name="receiverId" value={data?.otherUser?.id || ''} />
-            <input type="file" name="media" accept="image/*" bind:this={fileInput} class="hidden" id="fileInput" />
             <textarea
                 name="content"
                 bind:value={newMessage}
