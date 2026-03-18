@@ -8,11 +8,16 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       ORIGIN: ${ORIGIN}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT}
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       - db
   db:
     image: postgres
     restart: always
+    ports:
+     - 5432:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: mysecretpassword
@@ -20,5 +25,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
 volumes:
+  uploads: null
   pgdata: null
 networks: {}
