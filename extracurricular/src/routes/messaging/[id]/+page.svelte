@@ -41,7 +41,10 @@
         if (sending) return;
         const content = newMessage.trim();
         const file = fileInput?.files?.[0];
-        if (!content && !file) return;
+        if (!content && !file) {
+            showToast('Please enter a message or attach an image', 'error');
+            return;
+        }
 
         sending = true;
         try {
@@ -125,7 +128,28 @@
                 <div class="max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden
                     {msg.sender === 'sender' ? 'bg-blue-500 text-white' : 'bg-white text-gray-900'}
                     shadow">
-                    <p class="text-sm whitespace-pre-wrap">{msg.text}</p>
+                    {#if msg.mediaUrl}
+                        <div class="mt-1">
+                            <a
+                                href={msg.mediaUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-block"
+                                aria-label="Open attachment in new tab"
+                            >
+                                <img
+                                    src={msg.mediaUrl}
+                                    alt="attachment"
+                                    class="max-h-60 w-auto rounded-lg object-cover cursor-pointer"
+                                />
+                            </a>
+                        </div>
+                    {/if}
+
+                    {#if msg.text}
+                        <p class="text-sm whitespace-pre-wrap mt-2">{msg.text}</p>
+                    {/if}
+
                     <span class="text-xs text-gray-400 block text-right mt-1">{msg.time}</span>
                 </div>
             </div>
@@ -151,7 +175,7 @@
                 <button
                     type="submit"
                     class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50"
-                    disabled={sending || (!newMessage.trim() && !(fileInput?.files?.length > 0))}
+                    disabled={sending}
                 >
                     {sending ? 'Sending…' : 'Send'}
                 </button>
