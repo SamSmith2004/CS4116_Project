@@ -87,8 +87,12 @@ export const actions = {
                     return fail(400, { message: 'Invalid image type. Use JPEG, PNG and WebP.' });
                 }
 
-                const ext = media.name.split('.').pop()?.toLowerCase() || 'jpg';
-                const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg'; // TODO: Repalce with mime checks rather than ext
+                const mimeToExt = {
+                    'image/jpeg': 'jpg',
+                    'image/png': 'png',
+                    'image/webp': 'webp'
+                };
+                const safeExt = mimeToExt[media.type] || 'jpg';
                 const filename = `${Date.now()}.${safeExt}`;
                 const dir = path.join('/app/uploads', sessionUser.id.toString(), 'messages'); // In prod
                 // const dir = path.join('src/lib/assets/uploads', sessionUser.id.toString(), 'messages'); // Dev
