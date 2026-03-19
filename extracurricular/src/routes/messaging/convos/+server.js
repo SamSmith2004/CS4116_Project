@@ -1,11 +1,10 @@
 import { db } from '$lib/server/db';
 import { convos, messages, user, userDetails } from '$lib/server/db/schema';
 import { eq, or, desc } from 'drizzle-orm';
-import { fail } from '@sveltejs/kit';
 
-export const load = async ({ locals }) => {
+export const GET = async ({ locals }) => {
     const userId = locals.user?.id;
-    if (!userId) return fail(400, { message: 'Invalid userId'});
+    if (!userId) return new Response(JSON.stringify({ error: 'Invalid user' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
 
     const rows = await db.select().from(convos).where(
         or(eq(convos.user1, userId), eq(convos.user2, userId))
@@ -31,18 +30,18 @@ export const load = async ({ locals }) => {
             return {
                 id: c.id,
                 otherUser: other || { id: otherUserId, name: 'Unknown' },
-                lastMessage: lastMsg?.text || 'Could not load message',
+                lastMessage: lastMsg?.text || '',
                 timestamp: lastMsg?.timestamp || null
             };
         })
     );
 
-    // Latest convo at top
+    // sort latest first
     conversations.sort((a, b) => {
         const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
         const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
         return tb - ta;
     });
 
-    return { conversations, userId };
+    return new Response(JSON.stringify({ conversations }), { headers: { 'Content-Type': 'application/json' } });
 };

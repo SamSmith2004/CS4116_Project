@@ -1,72 +1,115 @@
 <script>
+    import { tick, onMount, onDestroy } from 'svelte';
     import { page } from '$app/stores';
-    import { tick } from 'svelte';
+    import Toast from '$lib/components/Toast.svelte';
+    import { showToast } from '$lib/toast.svelte.js';
+    import formatTime from '$lib/utils/time.js';
 
-    const mockNames = {
-        '1': 'Alice Murphy',
-        '2': 'Brian Kelly',
-        '3': 'Ciara Smith',
-        '4': 'Dylan Reeves',
-        '5': 'Emma Walsh',
-        '6': 'Fionn Gallagher',
-        '7': 'Grace Nolan',
-        '8': 'Hugo Brennan',
-        '9': 'Saoirse Flynn',
-        '10': 'Liam Doyle',
-        '11': 'Aoife Byrne',
-        '12': 'Oisín McCarthy',
-        '13': 'Niamh Kavanagh',
-        '14': 'Conor Duffy',
-        '15': 'Róisín Healy',
-        '16': 'Cian Moran',
-        '17': 'Éabha Daly',
-        '18': 'Seán Fitzgerald',
-        '19': 'Méabh Connolly',
-        '20': 'Darragh Quinn'
-    };
-
-    let convoId = '';
-    let partnerName = 'Unknown';
-    let messages = [];
-    let newMessage = '';
-
-    function generateMessages() {
-        return [
-            { id: 0, text: 'Hello! How are you?', sender: 'sender', time: '1m ago' },
-            { id: 1, text: "I\'m good, thanks!", sender: 'receiver', time: 'now' }
-        ];
-    }
-
-    $: {
-        const params = $page.params;
-        convoId = params.id;
-        if (convoId) {
-            partnerName = mockNames[convoId] || 'Unknown';
-            messages = generateMessages();
-        }
-    }
+    let { data } = $props();
+    let convoId = $state($page.params?.id);
     
+    // svelte-ignore state_referenced_locally
+    const partnerName = data?.otherUser?.name || 'Unknown';
+
+    let messages = $derived((data?.messages || []).map((m, idx) => ({
+        id: m.id || idx,
+        text: m.text,
+        mediaUrl: m.mediaUrl,
+        sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
+        time: m.timestamp ? formatTime(m.timestamp) : ''
+    })));
+
+    let pollInterval = null; //TODO: look into possibly websockets
+
+    let newMessage = $state('');
+    let fileInput = $state(null);
+    let attachedFileName = $state('');
+    let formEl = $state(null);
+    let sending = $state(false);
+    let messageContainer = null;
+    let _msgObserver = null;
+
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            handleSubmit();
         }
     }
 
-    async function sendMessage() {
-        if (newMessage.trim()) {
-            messages = [
-                ...messages,
-                { id: messages.length, text: newMessage, sender: 'sender', time: 'now' }
-            ];
-            newMessage = '';
+    async function handleSubmit(e) {
+        if (sending) return;
+        const content = newMessage.trim();
+        const file = fileInput?.files?.[0];
+        if (!content && !file) {
+            showToast('Please enter a message or attach an image', 'error');
+            return;
+        }
 
-            // scroll to latest, 'tick' gives moment for DOM to get new element before selecting 'messageContainer'
-            await tick();
-            const container = document.getElementById('messageContainer');
-            container?.scrollTo(0, container.scrollHeight);
+        sending = true;
+        try {
+            const formData = new FormData(formEl);
+            const res = await fetch(formEl.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                messages = [
+                    ...messages,
+                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, sender: 'sender', time: formatTime(Date.now()) }
+                ];
+                newMessage = '';
+                if (fileInput) fileInput.value = '';
+                attachedFileName = '';
+
+                await tick();
+                const container = messageContainer || document.getElementById('messageContainer');
+                container?.scrollTo(0, container.scrollHeight);
+            } else {
+                showToast('Send failed: ' + (res.statusText || res.status), 'error');
+            }
+        } catch (e) {
+            showToast('Send error: ' + (e?.message || e), 'error');
+        } finally {
+            sending = false;
         }
     }
+
+    onMount(() => {
+        // Auto-scroll to latest message
+        const container = messageContainer || document.getElementById('messageContainer');
+        if (!container) return;
+        container.scrollTo(0, container.scrollHeight);
+
+        _msgObserver = new MutationObserver(() => {
+            container.scrollTo(0, container.scrollHeight);
+        });
+        _msgObserver.observe(container, { childList: true, subtree: true });
+
+        // Poll messages every 5 seconds
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/messaging/${convoId}/messages`);
+                if (!res.ok) return;
+                const json = await res.json();
+                const newMsgs = (json.messages || []).map((m) => ({
+                    id: m.id,
+                    text: m.text,
+                    mediaUrl: m.mediaUrl,
+                    sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
+                    time: m.timestamp ? formatTime(m.timestamp) : ''
+                }));
+                messages = newMsgs;
+            } catch (e) {
+                // ignore polling errors
+            }
+        }, 5000);
+    });
+
+    onDestroy(() => {
+        _msgObserver?.disconnect();
+        if (pollInterval) clearInterval(pollInterval);
+    });
 </script>
 
 <div class="flex flex-col h-screen">
@@ -77,13 +120,36 @@
         <h2 class="text-lg font-semibold text-gray-900 truncate">{partnerName}</h2>
     </header>
 
-    <div id="messageContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+    <Toast />
+
+    <div id="messageContainer" bind:this={messageContainer} class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {#each messages as msg (msg.id)}
             <div class="flex {msg.sender === 'sender' ? 'justify-end' : 'justify-start'}">
                 <div class="max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden
                     {msg.sender === 'sender' ? 'bg-blue-500 text-white' : 'bg-white text-gray-900'}
                     shadow">
-                    <p class="text-sm whitespace-pre-wrap">{msg.text}</p>
+                    {#if msg.mediaUrl}
+                        <div class="mt-1">
+                            <a
+                                href={msg.mediaUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-block"
+                                aria-label="Open attachment in new tab"
+                            >
+                                <img
+                                    src={msg.mediaUrl}
+                                    alt="attachment"
+                                    class="max-h-60 w-auto rounded-lg object-cover cursor-pointer"
+                                />
+                            </a>
+                        </div>
+                    {/if}
+
+                    {#if msg.text}
+                        <p class="text-sm whitespace-pre-wrap mt-2">{msg.text}</p>
+                    {/if}
+
                     <span class="text-xs text-gray-400 block text-right mt-1">{msg.time}</span>
                 </div>
             </div>
@@ -91,22 +157,41 @@
     </div>
 
     <div class="border-t border-gray-200 p-4 bg-white">
-        <div class="flex gap-2">
+        <input type="file" name="media" accept="image/*" bind:this={fileInput} class="hidden" id="fileInput" onchange={() => { attachedFileName = fileInput?.files?.[0]?.name || ''; }} />
+
+        {#if attachedFileName}
+            <div class="mb-2 w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-symbols-rounded text-gray-600">attach_file</span>
+                    <span class="text-sm text-gray-700 truncate">{attachedFileName}</span>
+                </div>
+                <button type="button" class="text-sm text-gray-500 ml-3" onclick={() => { if (fileInput) fileInput.value = ''; attachedFileName = ''; }} aria-label="Remove attachment">Remove</button>
+            </div>
+        {/if}
+
+        <form bind:this={formEl} action="?/sendMessage" class="flex gap-2 w-full" onsubmit={handleSubmit} enctype="multipart/form-data">
+            <input type="hidden" name="receiverId" value={data?.otherUser?.id || ''} />
             <textarea
+                name="content"
                 bind:value={newMessage}
                 placeholder="Type a message..."
                 rows="1"
                 class="flex-1 px-4 py-2 border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                on:keydown={handleKeydown}
+                onkeydown={handleKeydown}
             ></textarea>
-            <button
-                class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50"
-                on:click={sendMessage}
-                disabled={!newMessage.trim()}
-            >
-                Send
-            </button>
-        </div>
+            <div class="flex items-center gap-2">
+                <button type="button" class="px-3 py-2 bg-gray-100 rounded-full" onclick={() => document.getElementById('fileInput')?.click()} title="Attach image">
+                    📎
+                </button>
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50"
+                    disabled={sending}
+                >
+                    {sending ? 'Sending…' : 'Send'}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

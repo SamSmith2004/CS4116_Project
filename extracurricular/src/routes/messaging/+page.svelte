@@ -1,36 +1,56 @@
 <script>
     import TopBar from '$lib/components/TopBar.svelte';
     import ConvoPreview from '$lib/components/ConvoPreview.svelte';
+    import formatTime from '$lib/utils/time.js';
 
-    // TODO: Replace with real data
-    const names = [ 
-        'Alice Murphy', 'Brian Kelly', 'Ciara Smith', 'Dylan Reeves',
-        'Emma Walsh', 'Fionn Gallagher', 'Grace Nolan', 'Hugo Brennan',
-        'Saoirse Flynn', 'Liam Doyle', 'Aoife Byrne', 'Oisín McCarthy',
-        'Niamh Kavanagh', 'Conor Duffy', 'Róisín Healy', 'Cian Moran',
-        'Éabha Daly', 'Seán Fitzgerald', 'Méabh Connolly', 'Darragh Quinn'
-    ];
-    const conversations = names.map((name, i) => ({
-        id: i + 1,
-        name,
-        lastMessage: 'Hello',
-        time: `${i}m ago`,
-        avatarColor: 'bg-indigo-500'
-    }));
+    import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+    let { data } = $props();
 
     let searchQuery = $state('');
     function handleSearch(query) {
         searchQuery = query;
     }
 
+    let pollInterval = null; //TODO: look into possibly websockets
+
+    let conversations = $derived((data?.conversations).map((c) => ({
+        id: c.id,
+        name: c.otherUser?.name || 'Unknown',
+        lastMessage: c.lastMessage || '',
+        time: c.timestamp ? formatTime(c.timestamp) : '',
+        avatarColor: 'bg-indigo-500'
+    })));
+
     let filtered = $derived(
         searchQuery
-            ? conversations.filter(c =>
-                c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-            )
+            ? conversations.filter((c) =>
+                  c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+              )
             : conversations
     );
+
+    onMount(() => {
+        // Poll messages every 5 seconds
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/messaging/convos`);
+                if (!res.ok) return;
+                const json = await res.json();
+                const newConvos = json.conversations?.map((c) => ({
+                    id: c.id,
+                    name: c.otherUser?.name || 'Unknown',
+                    lastMessage: c.lastMessage || '',
+                    time: c.timestamp ? formatTime(c.timestamp) : '',
+                    avatarColor: 'bg-indigo-500'
+                }));
+                conversations = newConvos;
+            } catch (e) {
+                // ignore polling errors
+            }
+        }, 5000);
+    });
 </script>
 
 <TopBar placeholder="Filter conversations" onSearch={handleSearch} />
