@@ -48,6 +48,7 @@
         sending = true;
         try {
             const formData = new FormData(formEl);
+            if (file) formData.append('media', file, file.name);
             const res = await fetch(formEl.action, {
                 method: 'POST',
                 body: formData
