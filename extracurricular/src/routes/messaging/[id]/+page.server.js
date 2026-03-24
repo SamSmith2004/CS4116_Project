@@ -5,6 +5,9 @@ import { fail } from '@sveltejs/kit';
 import path from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 
+const UPLOADS_DIR = '/app/uploads'; 
+//const UPLOADS_DIR = 'src/lib/assets/uploads'; // Dev
+
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals, params }) => {
     const sessionUser = locals.user;
@@ -94,8 +97,7 @@ export const actions = {
                 };
                 const safeExt = mimeToExt[media.type] || 'jpg';
                 const filename = `${Date.now()}.${safeExt}`;
-                const dir = path.join('/app/uploads', sessionUser.id.toString(), 'messages'); // In prod
-                // const dir = path.join('src/lib/assets/uploads', sessionUser.id.toString(), 'messages'); // Dev
+                const dir = path.join(UPLOADS_DIR, sessionUser.id.toString(), 'messages'); 
                 await mkdir(dir, { recursive: true });
                 const filePath = path.join(dir, filename);
                 const buffer = Buffer.from(await media.arrayBuffer());

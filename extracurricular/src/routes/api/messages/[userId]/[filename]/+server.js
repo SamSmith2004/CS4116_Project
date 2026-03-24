@@ -9,6 +9,7 @@ const MIME_TYPES = {
     webp: 'image/webp'
 };
 
+const TAG = "MessagesAPI: "
 // const UPLOADS_DIR = 'src/lib/assets/uploads'; // dev
 const UPLOADS_DIR = '/app/uploads'; 
 
@@ -17,14 +18,17 @@ export async function GET({ params }) {
     const { userId, filename } = params;
 
     if (userId.includes('..') || userId.includes('/') || userId.includes('\\')) {
+        console.log(TAG + "Invalid user Id")
         throw error(400, 'Invalid user ID');
     }
     if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        console.log(TAG + "Invalid filename")
         throw error(400, 'Invalid filename');
     }
 
     const ext = filename.split('.').pop()?.toLowerCase();
     if (!ext || !MIME_TYPES[ext]) {
+        console.log(TAG + "Invalid file type")
         throw error(400, 'Invalid file type');
     }
 
@@ -38,7 +42,8 @@ export async function GET({ params }) {
                 'Cache-Control': 'public, max-age=3600'
             }
         });
-    } catch {
+    } catch (e) {
+        console.log(TAG + e)
         throw error(404, 'Image not found');
     }
 }
