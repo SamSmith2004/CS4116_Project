@@ -22,16 +22,17 @@ export const load = async ({ locals }) => {
                 .where(eq(user.id, otherUserId));
 
             const [lastMsg] = await db
-                .select({ text: messages.text, timestamp: messages.timestamp })
+                .select({ text: messages.text, timestamp: messages.timestamp, url : messages.mediaUrl })
                 .from(messages)
                 .where(eq(messages.convoId, c.id))
                 .orderBy(desc(messages.timestamp))
                 .limit(1);
 
+
             return {
                 id: c.id,
                 otherUser: other || { id: otherUserId, name: 'Unknown' },
-                lastMessage: lastMsg?.text || 'Could not load message',
+                lastMessage: lastMsg?.text || (lastMsg.text === null && lastMsg.url !== null) ? 'attachment' : 'Could not load message',
                 timestamp: lastMsg?.timestamp || null
             };
         })
