@@ -2,6 +2,7 @@
     import { tick, onMount, onDestroy } from 'svelte';
     import { page } from '$app/stores';
     import Toast from '$lib/components/Toast.svelte';
+    import MessageOptions from '$lib/components/MessageOptions.svelte';
     import { showToast } from '$lib/toast.svelte.js';
     import formatTime from '$lib/utils/time.js';
 
@@ -28,6 +29,11 @@
     let sending = $state(false);
     let messageContainer = null;
     let _msgObserver = null;
+    let optionsOpen = $state(false);
+    let optionsX = $state(0);
+    let optionsY = $state(0);
+    let selectedMsg = $state(null);
+    let _longPressTimer = null;
 
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -78,6 +84,56 @@
         }
     }
 
+    function openOptionsForMsg(e, msg) {
+        // Messy logic to ensure popup doesn't explode 
+        // TODO: look at simplifying
+        let cx = 0, cy = 0;
+        if (e && e.touches && e.touches[0]) {
+            cx = e.touches[0].clientX;
+            cy = e.touches[0].clientY;
+        } else if (e && e.clientX != null) {
+            cx = e.clientX;
+            cy = e.clientY;
+        } else if (e && e.currentTarget) {
+            const r = e.currentTarget.getBoundingClientRect();
+            cx = r.left + r.width / 2;
+            cy = r.top + r.height / 2;
+        }
+
+        optionsX = Math.max(12, Math.min(window.innerWidth - 12, cx));
+        optionsY = Math.max(12, Math.min(window.innerHeight - 12, cy));
+        selectedMsg = msg;
+        optionsOpen = true;
+    }
+
+    async function handleDelete() {
+        if (!selectedMsg) return;
+        try {
+            //TODO: Implement backend
+            throw new Error('Not implemented');
+            showToast('Message deleted', 'success');
+        } catch (err) {
+            showToast('Delete error: ' + (err?.message || err), 'error');
+        } finally {
+            optionsOpen = false;
+            selectedMsg = null;
+        }
+    }
+
+    async function handleReport() {
+        if (!selectedMsg) return;
+        try {
+            //TODO: Implement backend
+            throw new Error('Not implemented');
+            showToast('Message reported', 'success');
+        } catch (err) {
+            showToast('Report error: ' + (err?.message || err), 'error');
+        } finally {
+            optionsOpen = false;
+            selectedMsg = null;
+        }
+    }
+
     onMount(() => {
         // Auto-scroll to latest message
         const container = messageContainer || document.getElementById('messageContainer');
@@ -112,6 +168,7 @@
     onDestroy(() => {
         _msgObserver?.disconnect();
         if (pollInterval) clearInterval(pollInterval);
+        if (_longPressTimer) clearTimeout(_longPressTimer);
     });
 </script>
 
@@ -128,9 +185,16 @@
     <div id="messageContainer" bind:this={messageContainer} class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {#each messages as msg (msg.id)}
             <div class="flex {msg.sender === 'sender' ? 'justify-end' : 'justify-start'}">
-                <div class="max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden
-                    {msg.sender === 'sender' ? 'bg-blue-500 text-white' : 'bg-white text-gray-900'}
-                    shadow">
+                <div
+                    class={msg.sender === 'sender'
+                        ? 'relative max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden bg-blue-500 text-white shadow'
+                        : 'relative max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden bg-white text-gray-900 shadow'}
+                    role="button"
+                    tabindex="0"
+                    ontouchstart={(e) => { _longPressTimer = setTimeout(() => openOptionsForMsg(e, msg), 600); }}
+                    ontouchend={() => { if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; } }}
+                    oncontextmenu={(e) => { e.preventDefault(); openOptionsForMsg(e, msg); }}
+                >
                     {#if msg.mediaUrl}
                         <div class="mt-1">
                             <a
@@ -153,11 +217,23 @@
                         <p class="text-sm whitespace-pre-wrap mt-2">{msg.text}</p>
                     {/if}
 
-                    <span class="text-xs text-gray-400 block text-right mt-1">{msg.time}</span>
+                    <div class="flex items-center justify-end gap-2 mt-1">
+                        <span class="text-xs text-gray-400">{msg.time}</span>
+                        <button
+                            class="options-trigger text-sm opacity-70"
+                            aria-label="Message options"
+                            onclick={(e) => { e.stopPropagation(); openOptionsForMsg(e, msg); }}
+                        >
+                            ⋮
+                        </button>
+                    </div>
                 </div>
             </div>
         {/each}
     </div>
+
+    <MessageOptions open={optionsOpen} x={optionsX} y={optionsY}
+        on:delete={handleDelete} on:report={handleReport} on:close={() => { optionsOpen = false; selectedMsg = null; }} />
 
     <div class="border-t border-gray-200 p-4 bg-white">
         <input type="file" name="media" accept="image/*" bind:this={fileInput} class="hidden" id="fileInput" onchange={() => { attachedFileName = fileInput?.files?.[0]?.name || ''; }} />
