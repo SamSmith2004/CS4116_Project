@@ -26,7 +26,11 @@ export const auth = betterAuth({
 				type: 'string',
 				required: true,
 				fieldName: 'dob'
-			}
+			},
+			isAdmin: {
+				 type: "boolean",
+				  defaultValue: false
+				 }
 		}
 	},
 	plugins: [sveltekitCookies(getRequestEvent)] // make sure this is the last plugin in the array
