@@ -27,6 +27,9 @@
     let attachedFileName = $state('');
     let formEl = $state(null);
     let sending = $state(false);
+    let showReportModal = $state(false);
+    let reportTarget = $state(null);
+    let reportReason = $state('');
     let messageContainer = null;
     let _msgObserver = null;
     
@@ -91,26 +94,43 @@
         }
     }
 
-    async function handleReport(msg) {
+    async function handleReport(msg, reason) {
         if (!msg) return;
-        try {
-            const reportReason = "";
 
+        try {
             const res = await fetch(`/api/messages/report/${msg.id}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: msg.senderId, reason: reportReason })
+                body: JSON.stringify({ userId: msg.senderId, reason })
             });
-            
+
             if (!res.ok) {
                 const errText = await res.text();
                 throw new Error(errText || res.statusText || res.status);
             }
-            
+
             showToast('Message reported', 'success');
         } catch (err) {
             showToast('Report error: ' + (err?.message || err), 'error');
         }
+    }
+
+    function openReportModal(msg) {
+        reportTarget = msg;
+        reportReason = '';
+        showReportModal = true;
+    }
+
+    function closeReportModal() {
+        reportTarget = null;
+        reportReason = '';
+        showReportModal = false;
+    }
+
+    async function confirmReport() {
+        if (!reportTarget) return;
+        await handleReport(reportTarget, reportReason);
+        closeReportModal();
     }
 
     onMount(() => {
@@ -203,12 +223,12 @@
                             >
                                 <span class="material-symbols-rounded scale-75">delete</span>
                             </button>
-                        {:else}
+                            {:else}
                             <button
                                 type="button"
                                 class="text-sm text-gray-400 hover:text-orange-500 ml-1 opacity-90"
                                 aria-label="Report message"
-                                onclick={() => handleReport(msg)}
+                                onclick={() => openReportModal(msg)}
                             >
                                 <span class="material-symbols-rounded scale-80">flag</span>
                             </button>
@@ -256,6 +276,20 @@
             </div>
         </form>
     </div>
+
+    {#if showReportModal}
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                <h3 class="text-lg font-semibold mb-2">Report message</h3>
+                <p class="text-sm text-gray-600 mb-3">Please describe why you're reporting this message (optional).</p>
+                <textarea bind:value={reportReason} rows="4" class="w-full border rounded p-2 mb-3" placeholder="Reason (optional)"></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="px-3 py-2 bg-gray-100 rounded" onclick={closeReportModal}>Cancel</button>
+                    <button type="button" class="px-3 py-2 bg-red-500 text-white rounded" onclick={confirmReport}>Report</button>
+                </div>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>
