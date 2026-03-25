@@ -32,6 +32,9 @@
     let reportReason = $state('');
     let messageContainer = null;
     let _msgObserver = null;
+
+    let showDeleteModal = $state(false);
+    let deleteTarget = $state(null);
     
 
     function handleKeydown(e) {
@@ -83,14 +86,42 @@
         }
     }
 
-    async function handleDelete(msg) {
-        if (!msg) return;
+    function openDeleteModal(msg) {
+        deleteTarget = msg;
+        showDeleteModal = true;
+    }
+
+    function closeDeleteModal() {
+        deleteTarget = null;
+        showDeleteModal = false;
+    }
+
+    async function confirmDelete() {
+        if (!deleteTarget) return;
+
+        // Temporary solution: msg UUID is a date until the poll hits causing an invlaid UUID to be sent
+        const isUUIDpattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!isUUIDpattern.test(deleteTarget.id)) {
+            closeDeleteModal();
+            showToast('Please wait 5 seconds before deleting', 'error');
+            return;
+        }
+
         try {
-            // TODO: Implement backend delete call
-            throw new Error('Not implemented');
+            const res = await fetch(`/api/messages/delete/${deleteTarget.id}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err || res.statusText || res.status);
+            }
+
+            messages = messages.filter((m) => m.id !== deleteTarget.id);
             showToast('Message deleted', 'success');
         } catch (err) {
             showToast('Delete error: ' + (err?.message || err), 'error');
+        } finally {
+            closeDeleteModal();
         }
     }
 
@@ -219,7 +250,7 @@
                                 type="button"
                                 class="text-sm text-gray-400 hover:text-red-500 ml-1 opacity-90"
                                 aria-label="Delete message"
-                                onclick={() => handleDelete(msg)}
+                                onclick={() => openDeleteModal(msg)}
                             >
                                 <span class="material-symbols-rounded scale-75">delete</span>
                             </button>
@@ -286,6 +317,18 @@
                 <div class="flex justify-end gap-2">
                     <button type="button" class="px-3 py-2 bg-gray-100 rounded" onclick={closeReportModal}>Cancel</button>
                     <button type="button" class="px-3 py-2 bg-red-500 text-white rounded" onclick={confirmReport}>Report</button>
+                </div>
+            </div>
+        </div>
+    {/if}
+    {#if showDeleteModal}
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                <h3 class="text-lg font-semibold mb-2">Confirm delete</h3>
+                <p class="text-sm text-gray-600 mb-3">Are you sure you want to delete this message? This action cannot be undone.</p>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="px-3 py-2 bg-gray-100 rounded" onclick={closeDeleteModal}>Cancel</button>
+                    <button type="button" class="px-3 py-2 bg-red-500 text-white rounded" onclick={confirmDelete}>Delete</button>
                 </div>
             </div>
         </div>
