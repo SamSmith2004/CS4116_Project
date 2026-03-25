@@ -15,6 +15,7 @@
         id: m.id || idx,
         text: m.text,
         mediaUrl: m.mediaUrl,
+        senderId: m.senderId,
         sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
         time: m.timestamp ? formatTime(m.timestamp) : ''
     })));
@@ -60,7 +61,7 @@
             if (res.ok) {
                 messages = [
                     ...messages,
-                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, sender: 'sender', time: formatTime(Date.now()) }
+                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, senderId: data?.me?.id, receiverId: data?.otherUser?.id, sender: 'sender', time: formatTime(Date.now()) }
                 ];
                 newMessage = '';
                 if (fileInput) fileInput.value = '';
@@ -93,8 +94,19 @@
     async function handleReport(msg) {
         if (!msg) return;
         try {
-            // TODO: Implement backend report call
-            throw new Error('Not implemented');
+            const reportReason = "";
+
+            const res = await fetch(`/api/messages/report/${msg.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: msg.senderId, reason: reportReason })
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || res.statusText || res.status);
+            }
+            
             showToast('Message reported', 'success');
         } catch (err) {
             showToast('Report error: ' + (err?.message || err), 'error');
@@ -122,6 +134,8 @@
                     id: m.id,
                     text: m.text,
                     mediaUrl: m.mediaUrl,
+                    senderId: m.senderId,
+                    receiverId: m.receiverId,
                     sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
                     time: m.timestamp ? formatTime(m.timestamp) : ''
                 }));
