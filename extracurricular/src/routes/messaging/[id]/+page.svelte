@@ -63,11 +63,14 @@
                 method: 'POST',
                 body: formData
             });
+            const resJson = await res.json().catch(() => { throw new Error('Invalid JSON response from server'); });
+            const data = JSON.parse(resJson.data)
+            const messageId = data[2]; // This should be in 0 but Svletekit is doing some weird padding of the array 
 
             if (res.ok) {
                 messages = [
                     ...messages,
-                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, senderId: data?.me?.id, receiverId: data?.otherUser?.id, sender: 'sender', time: formatTime(Date.now()) }
+                    { id: messageId, text: content, mediaUrl: file ? URL.createObjectURL(file) : null, senderId: data?.me?.id, receiverId: data?.otherUser?.id, sender: 'sender', time: formatTime(Date.now()) }
                 ];
                 newMessage = '';
                 if (fileInput) fileInput.value = '';
@@ -80,6 +83,7 @@
                 showToast('Send failed: ' + (res.statusText || res.status), 'error');
             }
         } catch (e) {
+            console.error('Send error:', e);
             showToast('Send error: ' + (e?.message || e), 'error');
         } finally {
             sending = false;
@@ -98,14 +102,6 @@
 
     async function confirmDelete() {
         if (!deleteTarget) return;
-
-        // Temporary solution: msg UUID is a date until the poll hits causing an invlaid UUID to be sent
-        const isUUIDpattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!isUUIDpattern.test(deleteTarget.id)) {
-            closeDeleteModal();
-            showToast('Please wait 5 seconds before deleting', 'error');
-            return;
-        }
 
         try {
             const res = await fetch(`/api/messages/delete/${deleteTarget.id}`, {
