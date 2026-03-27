@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"docker-build": "docker build --build-arg DATABASE_URL=postgres://root:mysecretpassword@fritznetwork.my.to:5432/local --build-arg ORIGIN=http://fritznetwork.my.to:5173 --build-arg BETTER_AUTH_SECRET=0M2xR37lrxeupxbHp3aIl2eFKWsrgVyK --build-arg BODY_SIZE_LIMIT=100M -t washamga/extracurricular-cs4116:latest .",
+		"docker-build": "docker build --build-arg DATABASE_URL=postgres://root:mysecretpassword@fritznetwork.my.to:5432/local --build-arg ORIGIN=https://extracurricular.site --build-arg BETTER_AUTH_SECRET=0M2xR37lrxeupxbHp3aIl2eFKWsrgVyK --build-arg BODY_SIZE_LIMIT=100M -t washamga/extracurricular-cs4116:latest .",
 		"docker-push": "docker push washamga/extracurricular-cs4116:latest",
 		"dev": "vite dev",
 		"build": "vite build",
