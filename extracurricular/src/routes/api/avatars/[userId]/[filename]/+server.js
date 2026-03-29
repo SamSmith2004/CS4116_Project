@@ -10,6 +10,7 @@ const MIME_TYPES = {
 };
 
 const AVATARS_DIR = '/app/uploads';
+// const AVATARS_DIR = 'src/lib/assets/uploads/'; // dev
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ params }) {
