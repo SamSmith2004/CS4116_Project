@@ -29,25 +29,34 @@
         return data.events.filter(event => isSameDay(parseISO(event.date), day));
     }
 
-    //important: get position of event 
-    //return nb of pixels that the event should be 
+    function parseTimeParts(timeStr) {
+        if (!timeStr) return [0, 0];
+    
+        const match = String(timeStr).match(/(\d{2}):(\d{2})/);
+        if (!match) return [0, 0];
+
+        const hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        return [hours, minutes];
+    }
+
     function getTimePos(timeStr){
-        if (!timeStr) return 0;
-        const [hours, minutes] = timeStr.split(':').map(Number);
+        const [hours, minutes] = parseTimeParts(timeStr);
         return (hours * HOUR_HEIGHT) + (minutes * HOUR_HEIGHT / 60);
     }
 
     function getEventHeight(startTime, endTime){
         if(!startTime || !endTime){
-            return HOUR_HEIGHT; // 1hour by default
+            return HOUR_HEIGHT;
         }
-        const [hStart, mStart] = startTime.split(':').map(Number);
-        const [hEnd, mEnd] = endTime.split(':').map(Number);  
+
+        const [hStart, mStart] = parseTimeParts(startTime);
+        const [hEnd, mEnd] = parseTimeParts(endTime);
 
         const startMinutes = (hStart * 60) + mStart;
         const endMinutes = (hEnd * 60) + mEnd;
         const timeLength = endMinutes - startMinutes;
-        return Math.max(20, (timeLength * HOUR_HEIGHT / 60)); //20 pixels min for visibility 
+        return Math.max(20, (timeLength * HOUR_HEIGHT / 60));
     }
 
     function openEventDetails(event){
@@ -99,7 +108,7 @@
         <div class="flex-1 overflow-y-auto flex">
             <div class="w-16 flex-none border-right border-gray-100 bg-white">
                 {#each Array.from({ length: 24 }) as _, h}
-                    <div class="h-20 text-right pr-2 text-xs text-gray-400 -mt-2">
+                    <div class="text-right pr-2 text-xs text-gray-400" style="height: {HOUR_HEIGHT}px;">
                         {h}:00
                     </div>
                 {/each}
@@ -108,7 +117,7 @@
             <div class="flex-1 grid grid-cols-7 relative">
                 <div class="absolute inset-0 pointer-events-none">
                     {#each Array.from({ length: 24 }) as _, h}
-                        <div class="h-20 border-b border-gray-100 w-full"></div>
+                        <div class="border-b border-gray-100 w-full" style="height: {HOUR_HEIGHT}px;"></div>
                     {/each}
                 </div>
 
