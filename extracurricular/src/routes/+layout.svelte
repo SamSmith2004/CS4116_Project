@@ -18,7 +18,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen">
-	{#if page.url.pathname !== "/login"}
+	{#if page.url.pathname !== "/login" && page.url.pathname !== "/login/register-details"}
 		<div class="hidden md:block">
 			<Navbar />
 		</div>
@@ -55,7 +55,7 @@
 		<!-- end -->
 	{/if}
 
-	<main class="{page.url.pathname !== '/login' ? 'md:ml-16' : ''} flex-1 w-full">
+	<main class="{page.url.pathname !== '/login' && page.url.pathname !== "/login/register-details" ? 'md:ml-16' : ''} flex-1 w-full">
 		{@render children()}
 	</main>
 </div>
