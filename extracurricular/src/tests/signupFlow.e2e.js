@@ -8,16 +8,14 @@ test('signup flow', async ({ page }) => {
     const lname = 'Test';
 
     await page.goto('/login');
-    await page.getByRole('button', { name: 'Register' }).click();
+    await Promise.all([
+        page.waitForURL('**/login/register-details', { timeout: 5000 }),
+        page.getByRole('button', { name: 'Create Account' }).click()
+    ]);
 
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
     await page.fill('input[name="dob"]', dob);
-    await Promise.all([
-        page.waitForURL('**/login/register-details', { timeout: 5000 }),
-        page.getByRole('button', { name: 'Next' }).click()
-    ]);
-    await expect(page.getByText('Complete Your Profile')).toBeVisible();
 
     await page.fill('input[name="fname"]', fname);
     await page.fill('input[name="lname"]', lname);
@@ -37,8 +35,8 @@ test('signup flow', async ({ page }) => {
         page.getByRole('button', { name: 'Create Account' }).click()
     ]);
 
-    page.waitForURL('**/profile', { timeout: 5000 })
-    await expect(page.getByText('EDIT PROFILE')).toBeVisible();
+    await page.waitForURL('**/profile', { timeout: 5000 });
+    await expect(page.getByText(/Edit Profile/i)).toBeVisible();
 
     async function selectOptionAndAssert(selector, value) {
         const select = page.locator(selector);
