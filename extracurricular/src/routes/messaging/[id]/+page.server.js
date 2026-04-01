@@ -6,7 +6,7 @@ import path from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 
 const UPLOADS_DIR = '/app/uploads'; 
-//const UPLOADS_DIR = 'src/lib/assets/uploads'; // Dev
+// const UPLOADS_DIR = 'src/lib/assets/uploads'; // Dev
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals, params }) => {
@@ -105,15 +105,15 @@ export const actions = {
                 mediaUrl = `/api/messages/${sessionUser.id}/${filename}`;
             }
 
-            await db.insert(messagesTable).values({
+            const [inserted] = await db.insert(messagesTable).values({
                 convoId,
                 text: content || null, // null is to allow image only messages
                 mediaUrl,
                 senderId: sessionUser.id,
                 receiverId
-            });
+            }).returning({ id: messagesTable.id });
 
-            return { success: true, message: 'Message Sent' };
+            return { success: true, messageId: inserted.id };
         } catch (e) {
             console.error('Sender msg error:', e);
             return fail(500, { message: 'Unexpected server error' });

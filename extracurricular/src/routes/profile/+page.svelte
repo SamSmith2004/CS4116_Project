@@ -79,36 +79,55 @@
 
                 <div class="w-full md:w-2/3">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        <input type="text" name="fname" placeholder="Name" bind:value={profile.fname} class="border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                        <input type="text" name="lname" placeholder="Surname" bind:value={profile.lname} class="border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        <div>
+                            <label for="fname" class="block text-xs font-bold uppercase text-gray-500 mb-1">First Name</label>
+                            <input id="fname" type="text" name="fname" placeholder="Name" bind:value={profile.fname} class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
 
-                        <select name="university" bind:value={profile.university} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
-                            <option value="" disabled>Select University</option>
-                            {#each allUniversities as u}
-                                <option value={u}>{u}</option>
-                            {/each}
-                        </select>
+                        <div>
+                            <label for="lname" class="block text-xs font-bold uppercase text-gray-500 mb-1">Last Name</label>
+                            <input id="lname" type="text" name="lname" placeholder="Surname" bind:value={profile.lname} class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
 
-                        <select name="degree" bind:value={profile.degree} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
-                            <option value="" disabled>Select Degree</option>
-                            {#each allDegrees as d}
-                                <option value={d}>{d}</option>
-                            {/each}
-                        </select>
+                        <div>
+                            <label for="university" class="block text-xs font-bold uppercase text-gray-500 mb-1">University</label>
+                            <select id="university" name="university" bind:value={profile.university} class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
+                                <option value="" disabled>Select University</option>
+                                {#each allUniversities as u}
+                                    <option value={u}>{u}</option>
+                                {/each}
+                            </select>
+                        </div>
 
-                        <select name="gender" bind:value={profile.gender} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
-                            <option value="" disabled>Select Gender</option>
-                            {#each allGenders as g}
-                                <option value={g}>{g[0].toUpperCase() + g.slice(1)}</option>
-                            {/each}
-                        </select>
+                        <div>
+                            <label for="degree" class="block text-xs font-bold uppercase text-gray-500 mb-1">Degree</label>
+                            <select id="degree" name="degree" bind:value={profile.degree} class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
+                                <option value="" disabled>Select Degree</option>
+                                {#each allDegrees as d}
+                                    <option value={d}>{d}</option>
+                                {/each}
+                            </select>
+                        </div>
 
-                        <select name="partnerPref" bind:value={profile.partnerPref} class="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
-                            <option value="" disabled>Partner Preference</option>
-                            {#each allPartnerPrefs as p}
-                                <option value={p}>{p[0].toUpperCase() + p.slice(1)}</option>
-                            {/each}
-                        </select>
+                        <div>
+                            <label for="gender" class="block text-xs font-bold uppercase text-gray-500 mb-1">Gender</label>
+                            <select id="gender" name="gender" bind:value={profile.gender} class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
+                                <option value="" disabled>Select Gender</option>
+                                {#each allGenders as g}
+                                    <option value={g}>{g[0].toUpperCase() + g.slice(1)}</option>
+                                {/each}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="partnerPref" class="block text-xs font-bold uppercase text-gray-500 mb-1">Partner Preference</label>
+                            <select id="partnerPref" name="partnerPref" bind:value={profile.partnerPref} class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none">
+                                <option value="" disabled>Partner Preference</option>
+                                {#each allPartnerPrefs as p}
+                                    <option value={p}>{p[0].toUpperCase() + p.slice(1)}</option>
+                                {/each}
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-6">

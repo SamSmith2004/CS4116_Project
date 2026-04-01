@@ -4,8 +4,9 @@
     /** @type {import('./$types').PageProps} */
     let { form, data } = $props();
 
-    const availableInterests = ['Hiking', 'Music', 'Gaming', 'Reading', 'Movies', 'Cycling', 'Sport', 'Swimming', 'Fishing', 'Computers'];
+    let allInterests = $derived(data.allInterests || []);
     let interests = $state([]);
+    let emailInvalid = $state(false);
     let allUniversities = $derived(data.allUniversities || []);
     let allDegrees = $derived(data.allDegrees || []);
 
@@ -16,6 +17,11 @@
             interests = [...interests, interest];
         }
     }
+
+    function validateEmail(value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        emailInvalid = value.length > 0 && !emailRegex.test(value);
+    }
 </script>
 
 <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -25,12 +31,58 @@
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 mb-4 shadow-lg">
                 <span class="material-symbols-rounded text-white text-[32px]">person_add</span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900">Complete Your Profile</h1>
-            <p class="text-gray-500 text-sm mt-1">Tell us a bit more about yourself</p>
+            <h1 class="text-2xl font-bold text-gray-900">Create your Account</h1>
+            <p class="text-gray-500 text-sm mt-1">Tell us about yourself</p>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
             <form method="post" action='?/signUpEmail' use:enhance class="space-y-4">
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="you@example.com"
+                        oninput={(e) => validateEmail(e.target.value)}
+                        class="w-full px-3 py-2.5 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 outline-none transition-all text-sm
+                            {emailInvalid
+                                ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                                : 'border-gray-200 focus:border-blue-400 focus:ring-blue-100'}"
+                    />
+                    {#if emailInvalid}
+                        <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                            <span class="material-symbols-rounded text-[14px]">error</span>
+                            Please enter a valid email address
+                        </p>
+                    {/if}
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        minlength="8"
+                        placeholder="••••••••"
+                        class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
+                    />
+                </div>
+
+                <div>
+                    <label for="dob" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <input
+                        type="date"
+                        id="dob"
+                        name="dob"
+                        required
+                        class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
+                    />
+                </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -119,9 +171,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Interests</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-2">Interests</p>
                     <div class="flex flex-wrap gap-2">
-                        {#each availableInterests as interest}
+                        {#each allInterests as interest}
                             <button
                                 type="button"
                                 onclick={() => toggleInterest(interest)}

@@ -1,8 +1,8 @@
 <script>
     import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 
     let { form } = $props();
-    let isRegistering = $state(false);
     let emailInvalid = $state(false);
 
     function validateEmail(value) {
@@ -23,25 +23,7 @@
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-
-            <div class="flex rounded-xl bg-gray-100 p-1 mb-6">
-                <button
-                    type="button"
-                    onclick={() => isRegistering = false}
-                    class="flex-1 py-2 text-sm font-medium rounded-lg transition-all {!isRegistering ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}"
-                >
-                    Sign In
-                </button>
-                <button
-                    type="button"
-                    onclick={() => isRegistering = true}
-                    class="flex-1 py-2 text-sm font-medium rounded-lg transition-all {isRegistering ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}"
-                >
-                    Register
-                </button>
-            </div>
-
-            <form method="post" action={isRegistering ? '?/signUpInit' : '?/signInEmail'} use:enhance class="space-y-4">
+            <form method="post" action="?/signInEmail" use:enhance class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
                         Email Address
@@ -84,18 +66,6 @@
                     </div>
                 </div>
 
-                {#if isRegistering}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1" for="dob">Date of Birth</label>
-                        <input
-                            id="dob"
-                            name="dob"
-                            type="date"
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
-                        />
-                    </div>
-                {/if}
-
                 {#if form?.message}
                     <div class="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
                         <span class="material-symbols-rounded text-red-500 text-[18px]">error</span>
@@ -107,7 +77,15 @@
                     type="submit"
                     class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm mt-2"
                 >
-                    {isRegistering ? 'Next' : 'Sign In'}
+                    Sign In
+                </button>
+
+                <button
+                    type="button"
+                    onclick={goto('/login/register-details')}
+                    class="w-full py-2.5 px-4 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors"
+                >
+                    Create Account
                 </button>
             </form>
         </div>
