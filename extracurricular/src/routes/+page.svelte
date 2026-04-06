@@ -10,25 +10,13 @@
   let requestIndex = $state(0);
   let recommendationIndex = $state(0);
   let searchQuery = $state('');
+  let hasSearchActive = $state(false);
 
   const activeGroup = $derived.by(() => {
     if (requestIndex < requests.length) return 'requests';
     if (recommendationIndex < recommendations.length) return 'recommendations';
     return 'done';
   });
-
-  const queue = $derived.by(() =>
-    [...requests, ...recommendations].filter((person) => {
-      if (!searchQuery.trim()) return true;
-      const query = searchQuery.trim().toLowerCase();
-      return (
-        person.name.toLowerCase().includes(query) ||
-        person.university.toLowerCase().includes(query) ||
-        person.course.toLowerCase().includes(query) ||
-        person.interests.some((interest) => interest.toLowerCase().includes(query))
-      );
-    })
-  );
 
   const currentMatch = $derived.by(() => {
     if (activeGroup === 'requests') return requests[requestIndex];
@@ -41,31 +29,23 @@
     return universityTintMap[currentMatch.university] ?? '#f8fafc';
   });
 
-  const hasSearchActive = $derived.by(() => searchQuery.trim().length > 0);
-
-  const searchResult = $derived.by(() => {
-    if (!hasSearchActive) return null;
-    return queue.find((person) => person.id === currentMatch?.id) ? currentMatch : queue[0] ?? null;
-  });
-
-  const visibleMatch = $derived.by(() => (hasSearchActive ? searchResult : currentMatch));
+  const visibleMatch = $derived.by(() => currentMatch);
 
   const activePosition = $derived.by(() => {
     if (!visibleMatch) return 0;
-    if (hasSearchActive) return queue.findIndex((person) => person.id === visibleMatch.id) + 1;
     if (activeGroup === 'requests') return requestIndex + 1;
     if (activeGroup === 'recommendations') return recommendationIndex + 1;
     return 0;
   });
 
-  const activeTotal = $derived.by(() => (hasSearchActive ? queue.length : requests.length + recommendations.length));
+  const activeTotal = $derived.by(() => requests.length + recommendations.length);
 
   function handleSearch(query) {
-    searchQuery = query;
+    searchQuery = query.trim().toLowerCase();
   }
 
-  function handleChoice(choice) {
-    if (!currentMatch || hasSearchActive) return;
+  function handleChoice() {
+    if (!currentMatch) return;
 
     if (activeGroup === 'requests') {
       requestIndex = requestIndex + 1;
@@ -151,8 +131,8 @@
               <div class="mt-8 grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onclick={() => handleChoice('fail')}
-                  disabled={hasSearchActive || !currentMatch}
+                  onclick={handleChoice}
+                  disabled={!currentMatch}
                   class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Fail
@@ -160,8 +140,8 @@
 
                 <button
                   type="button"
-                  onclick={() => handleChoice('pass')}
-                  disabled={hasSearchActive || !currentMatch}
+                  onclick={handleChoice}
+                  disabled={!currentMatch}
                   class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Pass
