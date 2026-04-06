@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { user, userDetails, interests } from '$lib/server/db/schema';
+import { user, userDetails, interests, universityEnum, degreeEnum, interestEnum } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import calculateAge from '$lib/utils/age.js';
 
@@ -69,9 +69,16 @@ export const load = async ({ locals }) => {
             imageUrl: profile.avatarUrl
         }));
 
+    const universityList = universityEnum.enumValues;
+    const interestList = interestEnum.enumValues;
+    const degreeList = degreeEnum.enumValues;
+
     return {
         requests: [],
         recommendations,
-        universityTintMap
+        universityTintMap,
+        universityList,
+        interestList,
+        degreeList
     };
 };
