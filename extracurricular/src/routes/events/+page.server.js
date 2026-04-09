@@ -1,13 +1,24 @@
 import { db } from '$lib/server/db';
 import { events } from '$lib/server/db/schema';
 import { fail } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals }) => {
-
-    const allEvents = await db.select().from(events).orderBy(desc(events.date));
+    const allEvents = await db
+        .select({
+            id: events.id,
+            name: events.name,
+            desc: events.desc,
+            url: events.url,
+            imgUrl: events.imgUrl,
+            date: sql`to_char(${events.date}, 'YYYY-MM-DD')`.as('date'),
+            time: sql`to_char(${events.time}, 'HH24:MI')`.as('time'),
+            endTime: sql`to_char(${events.end_time}, 'HH24:MI')`.as('endTime')
+        })
+        .from(events)
+        .orderBy(desc(events.date));
 
     return {
         user: locals.user, // All I want for christmas is isAdmin 
@@ -35,7 +46,7 @@ export const actions = {
                 date,
                 time,
                 desc: description,
-                endTime,
+                end_time: endTime,
             });
             return {success: true};
         } catch(e){

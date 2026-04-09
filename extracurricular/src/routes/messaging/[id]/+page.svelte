@@ -15,6 +15,7 @@
         id: m.id || idx,
         text: m.text,
         mediaUrl: m.mediaUrl,
+        senderId: m.senderId,
         sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
         time: m.timestamp ? formatTime(m.timestamp) : ''
     })));
@@ -26,8 +27,15 @@
     let attachedFileName = $state('');
     let formEl = $state(null);
     let sending = $state(false);
+    let showReportModal = $state(false);
+    let reportTarget = $state(null);
+    let reportReason = $state('');
     let messageContainer = null;
     let _msgObserver = null;
+
+    let showDeleteModal = $state(false);
+    let deleteTarget = $state(null);
+    
 
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -55,11 +63,14 @@
                 method: 'POST',
                 body: formData
             });
+            const resJson = await res.json().catch(() => { throw new Error('Invalid JSON response from server'); });
+            const data = JSON.parse(resJson.data)
+            const messageId = data[2]; // This should be in 0 but Svletekit is doing some weird padding of the array 
 
             if (res.ok) {
                 messages = [
                     ...messages,
-                    { id: Date.now(), text: content, mediaUrl: file ? URL.createObjectURL(file) : null, sender: 'sender', time: formatTime(Date.now()) }
+                    { id: messageId, text: content, mediaUrl: file ? URL.createObjectURL(file) : null, senderId: data?.me?.id, receiverId: data?.otherUser?.id, sender: 'sender', time: formatTime(Date.now()) }
                 ];
                 newMessage = '';
                 if (fileInput) fileInput.value = '';
@@ -72,10 +83,81 @@
                 showToast('Send failed: ' + (res.statusText || res.status), 'error');
             }
         } catch (e) {
+            console.error('Send error:', e);
             showToast('Send error: ' + (e?.message || e), 'error');
         } finally {
             sending = false;
         }
+    }
+
+    function openDeleteModal(msg) {
+        deleteTarget = msg;
+        showDeleteModal = true;
+    }
+
+    function closeDeleteModal() {
+        deleteTarget = null;
+        showDeleteModal = false;
+    }
+
+    async function confirmDelete() {
+        if (!deleteTarget) return;
+
+        try {
+            const res = await fetch(`/api/messages/delete/${deleteTarget.id}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err || res.statusText || res.status);
+            }
+
+            messages = messages.filter((m) => m.id !== deleteTarget.id);
+            showToast('Message deleted', 'success');
+        } catch (err) {
+            showToast('Delete error: ' + (err?.message || err), 'error');
+        } finally {
+            closeDeleteModal();
+        }
+    }
+
+    async function handleReport(msg, reason) {
+        if (!msg) return;
+
+        try {
+            const res = await fetch(`/api/messages/report/${msg.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: msg.senderId, reason })
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || res.statusText || res.status);
+            }
+
+            showToast('Message reported', 'success');
+        } catch (err) {
+            showToast('Report error: ' + (err?.message || err), 'error');
+        }
+    }
+
+    function openReportModal(msg) {
+        reportTarget = msg;
+        reportReason = '';
+        showReportModal = true;
+    }
+
+    function closeReportModal() {
+        reportTarget = null;
+        reportReason = '';
+        showReportModal = false;
+    }
+
+    async function confirmReport() {
+        if (!reportTarget) return;
+        await handleReport(reportTarget, reportReason);
+        closeReportModal();
     }
 
     onMount(() => {
@@ -99,6 +181,8 @@
                     id: m.id,
                     text: m.text,
                     mediaUrl: m.mediaUrl,
+                    senderId: m.senderId,
+                    receiverId: m.receiverId,
                     sender: m.senderId === data?.me?.id ? 'sender' : 'receiver',
                     time: m.timestamp ? formatTime(m.timestamp) : ''
                 }));
@@ -128,9 +212,11 @@
     <div id="messageContainer" bind:this={messageContainer} class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {#each messages as msg (msg.id)}
             <div class="flex {msg.sender === 'sender' ? 'justify-end' : 'justify-start'}">
-                <div class="max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden
-                    {msg.sender === 'sender' ? 'bg-blue-500 text-white' : 'bg-white text-gray-900'}
-                    shadow">
+                <div
+                    class={msg.sender === 'sender'
+                        ? 'relative max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden bg-blue-500 text-white shadow'
+                        : 'relative max-w-[70%] min-w-0 px-4 py-2 rounded-xl wrap-break-words overflow-hidden bg-white text-gray-900 shadow'}
+                >
                     {#if msg.mediaUrl}
                         <div class="mt-1">
                             <a
@@ -153,7 +239,28 @@
                         <p class="text-sm whitespace-pre-wrap mt-2">{msg.text}</p>
                     {/if}
 
-                    <span class="text-xs text-gray-400 block text-right mt-1">{msg.time}</span>
+                    <div class="flex items-center justify-end gap-2 mt-1">
+                        <span class="text-xs text-gray-400">{msg.time}</span>
+                        {#if msg.sender === 'sender'}
+                            <button
+                                type="button"
+                                class="text-sm text-gray-400 hover:text-red-500 ml-1 opacity-90"
+                                aria-label="Delete message"
+                                onclick={() => openDeleteModal(msg)}
+                            >
+                                <span class="material-symbols-rounded scale-75">delete</span>
+                            </button>
+                            {:else}
+                            <button
+                                type="button"
+                                class="text-sm text-gray-400 hover:text-orange-500 ml-1 opacity-90"
+                                aria-label="Report message"
+                                onclick={() => openReportModal(msg)}
+                            >
+                                <span class="material-symbols-rounded scale-80">flag</span>
+                            </button>
+                        {/if}
+                    </div>
                 </div>
             </div>
         {/each}
@@ -196,6 +303,32 @@
             </div>
         </form>
     </div>
+
+    {#if showReportModal}
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                <h3 class="text-lg font-semibold mb-2">Report message</h3>
+                <p class="text-sm text-gray-600 mb-3">Please describe why you're reporting this message (optional).</p>
+                <textarea bind:value={reportReason} rows="4" class="w-full border rounded p-2 mb-3" placeholder="Reason (optional)"></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="px-3 py-2 bg-gray-100 rounded" onclick={closeReportModal}>Cancel</button>
+                    <button type="button" class="px-3 py-2 bg-red-500 text-white rounded" onclick={confirmReport}>Report</button>
+                </div>
+            </div>
+        </div>
+    {/if}
+    {#if showDeleteModal}
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                <h3 class="text-lg font-semibold mb-2">Confirm delete</h3>
+                <p class="text-sm text-gray-600 mb-3">Are you sure you want to delete this message? This action cannot be undone.</p>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="px-3 py-2 bg-gray-100 rounded" onclick={closeDeleteModal}>Cancel</button>
+                    <button type="button" class="px-3 py-2 bg-red-500 text-white rounded" onclick={confirmDelete}>Delete</button>
+                </div>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>
