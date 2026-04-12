@@ -64,19 +64,6 @@
     searchQuery = query;
   }
 
-  function handleChoice(choice) {
-    if (!currentMatch || hasSearchActive) return;
-
-    if (activeGroup === 'requests') {
-      requestIndex = requestIndex + 1;
-      return;
-    }
-
-    if (activeGroup === 'recommendations') {
-      recommendationIndex = recommendationIndex + 1;
-    }
-  }
-
 </script>
 
 <TopBar placeholder="Search for people...." onSearch={handleSearch} />
@@ -149,23 +136,31 @@
               </div>
 
               <div class="mt-8 grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onclick={() => handleChoice('fail')}
-                  disabled={hasSearchActive || !currentMatch}
-                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Fail
-                </button>
+                <form method="POST" action="?/decide">
+                  <input type="hidden" name="requestId" value={visibleMatch.id} />
+                  <input type="hidden" name="decision" value="fail" />
+                  <input type="hidden" name="group" value={activeGroup} />
+                  <button
+                    type="submit"
+                    disabled={hasSearchActive || !currentMatch}
+                    class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Fail
+                  </button>
+                </form>
 
-                <button
-                  type="button"
-                  onclick={() => handleChoice('pass')}
-                  disabled={hasSearchActive || !currentMatch}
-                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Pass
-                </button>
+                <form method="POST" action="?/decide">
+                  <input type="hidden" name="requestId" value={visibleMatch.id} />
+                  <input type="hidden" name="decision" value="pass" />
+                  <input type="hidden" name="group" value={activeGroup} />
+                  <button
+                    type="submit"
+                    disabled={hasSearchActive || !currentMatch}
+                    class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Pass
+                  </button>
+                </form>
               </div>
 
               {#if hasSearchActive}
