@@ -1,14 +1,21 @@
-import { useSession } from '$lib/auth-client';
 import { db } from '$lib/server/db';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { user } from '$lib/server/db/auth.schema';
+import { banned, reports, userDetails } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
+
+function formatDate(value) {
+    if (!value) return 'Unknown';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Unknown';
+    return date.toISOString().slice(0, 10);
+}
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals }) {
     const sessionUser = locals.user;
     if (!sessionUser) {
-        redirect(302, "/login");
+        throw redirect(302, '/login');
     }
 
     const query = await db.select({ isAdmin: user.isAdmin })
@@ -17,8 +24,58 @@ export async function load({ locals }) {
 
     const isAdmin = query[0]?.isAdmin;
     if (!isAdmin) {
-        redirect(303, "/");
+        throw redirect(303, '/');
     }
 
-    return {};
+    const reportRows = await db
+        .select({
+            reportId: reports.id,
+            reason: reports.reason,
+            reportedAt: reports.createdAt,
+            reportedUserId: reports.reportedUserId,
+            avatarUrl: userDetails.avatarUrl,
+            name: user.name,
+            email: user.email
+        })
+        .from(reports)
+        .leftJoin(user, eq(user.id, reports.reportedUserId))
+        .leftJoin(userDetails, eq(user.id, userDetails.userId))
+        .orderBy(desc(reports.createdAt));
+
+    const latestReportByUser = new Map();
+    for (const row of reportRows) {
+        const key = row.reportedUserId;
+        if (!latestReportByUser.has(key)) {
+            latestReportByUser.set(key, row);
+        }
+    }
+
+    const reported = Array.from(latestReportByUser.values()).map((row) => ({
+        id: row.reportId,
+        userId: row.reportedUserId,
+        name: row.name || 'Unknown User',
+        email: row.email,
+        reason: row.reason || 'No reason provided',
+        reportedAt: formatDate(row.reportedAt),
+        avatarUrl: row.avatarUrl || null,
+        banned: false
+    }));
+
+    const bannedRows = await db
+        .select({
+            banId: banned.id,
+            email: banned.email
+        })
+        .from(banned)
+
+    const bannedUsers = bannedRows.map((row) => ({
+        id: row.banId,
+        email: row.email,
+        banned: true
+    }));
+
+    return {
+        reported,
+        banned: bannedUsers
+    };
 }

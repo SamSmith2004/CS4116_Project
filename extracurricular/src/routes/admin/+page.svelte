@@ -4,16 +4,8 @@
     /** @type {import('./$types').PageProps} */
     let { data } = $props();
 
-    const users = [
-        { id: 1, name: 'John Doe', reason: 'Spam content', reportedAt: '2026-03-10', avatarColor: 'bg-red-400', banned: false },
-        { id: 2, name: 'Jane Smith', reason: 'Harassment', reportedAt: '2026-03-09', avatarColor: 'bg-indigo-500', banned: false },
-        { id: 3, name: 'Bob Lee', reason: 'Impersonation', reportedAt: '2026-03-08', avatarColor: 'bg-emerald-500', banned: true },
-        { id: 4, name: 'Alice Park', reason: 'Inappropriate content', reportedAt: '2026-03-07', avatarColor: 'bg-yellow-500', banned: false }
-    ];
-
-    // TODO: actually query banned users
-    const reported = users.filter(u => !u.banned);
-    const banned = users.filter(u => u.banned);
+    const reported = $derived.by(() => data.reported ?? []);
+    const banned = $derived.by(() => data.banned ?? []);
 
     function handleSearch() {
         // TODO
@@ -28,10 +20,39 @@
     {#if reported.length}
         <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden mb-6">
             {#each reported as user (user.id)}
-                <div class="flex items-center justify-between px-4 py-3">
+                <div class="px-4 py-3 sm:hidden">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="w-11 h-11 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                {#if user.avatarUrl}
+                                    <img src={user.avatarUrl} alt={`Avatar of ${user.name}`} class="w-full h-full object-cover" />
+                                {:else}
+                                    <span class="material-symbols-rounded text-[18px] text-gray-500">person</span>
+                                {/if}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-sm font-semibold text-gray-900 wrap-break-word">{user.name}</div>
+                                <div class="text-xs text-gray-500 wrap-break-word">Reported: {user.reportedAt} | Reason: {user.reason}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid w-full grid-cols-2 gap-2">
+                            <p class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</p>
+                            <p class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
+                            <button class="text-sm px-3 py-1 rounded-md border border-gray-200">Ban</button>
+                            <button class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden sm:flex sm:items-center sm:justify-between sm:px-4 sm:py-3">
                     <div class="flex items-center gap-4">
-                        <div class={`w-11 h-11 rounded-full flex items-center justify-center text-white ${user.avatarColor} font-medium`}> 
-                            {user.name.split(' ').map(n => n[0]).slice(0,2).join('')}
+                        <div class="w-11 h-11 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                            {#if user.avatarUrl}
+                                <img src={user.avatarUrl} alt={`Avatar of ${user.name}`} class="w-full h-full object-cover" />
+                            {:else}
+                                <span class="material-symbols-rounded text-[18px] text-gray-500">person</span>
+                            {/if}
                         </div>
                         <div>
                             <div class="text-sm font-semibold text-gray-900">{user.name}</div>
@@ -61,12 +82,11 @@
             {#each banned as user (user.id)}
                 <div class="flex items-center justify-between px-4 py-3">
                     <div class="flex items-center gap-4">
-                        <div class={`w-10 h-10 rounded-full flex items-center justify-center text-white ${user.avatarColor} font-medium`}> 
-                            {user.name.split(' ').map(n => n[0]).slice(0,2).join('')}
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-red-50 text-red-600 border border-red-200"> 
+                            <span class="material-symbols-rounded text-[18px]">gavel</span>
                         </div>
                         <div>
-                            <div class="text-sm font-semibold text-gray-900">{user.name}</div>
-                            <div class="text-xs text-gray-500">Reported: {user.reportedAt} | Reason: {user.reason}</div>
+                            <div class="text-sm font-semibold text-gray-900">{user.email}</div>
                         </div>
                     </div>
 
