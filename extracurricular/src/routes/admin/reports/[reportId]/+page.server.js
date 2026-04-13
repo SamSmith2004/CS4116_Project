@@ -52,22 +52,34 @@ export async function load({ locals, params }) {
         .orderBy(desc(reports.createdAt));
 
     const messagesById = new Map();
+
     for (const row of reportRows) {
-        if (!row.messageId || messagesById.has(row.messageId)) {
+        if (!row.messageId) {
             continue;
         }
 
-        messagesById.set(row.messageId, {
-            id: row.messageId,
+        if (!messagesById.has(row.messageId)) {
+            messagesById.set(row.messageId, {
+                id: row.messageId,
+                text: row.messageText || '',
+                mediaUrl: row.mediaUrl,
+                senderId: row.senderId,
+                timestamp: formatIsoDateTime(row.timestamp),
+                reports: []
+            });
+        }
+
+        messagesById.get(row.messageId).reports.push({
             reportId: row.reportId,
             reason: row.reason || 'No reason provided',
-            reportedAt: formatIsoDateTime(row.reportedAt),
-            text: row.messageText || '',
-            mediaUrl: row.mediaUrl,
-            senderId: row.senderId,
-            timestamp: formatIsoDateTime(row.timestamp)
+            reportedAt: formatIsoDateTime(row.reportedAt)
         });
     }
+
+    const reportedMessages = Array.from(messagesById.values()).map((message) => ({
+        ...message,
+        reportCount: message.reports.length
+    }));
 
     return {
         reportedUser: {
@@ -75,13 +87,13 @@ export async function load({ locals, params }) {
             name: selectedReport.reportedUserName || 'Unknown User',
             email: selectedReport.reportedUserEmail || 'Unknown email'
         },
-        reportedMessages: Array.from(messagesById.values())
+        reportedMessages
     };
 }
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-    deleteMessage: async ({ locals, request }) => {
+    deleteMessage: async ({ locals, request, fetch }) => {
         await requireAdmin(locals);
 
         const formData = await request.formData();
@@ -92,7 +104,17 @@ export const actions = {
         }
 
         try {
-            await db.delete(messages).where(eq(messages.id, messageId));
+            const response = await fetch(`/api/messages/delete/${messageId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                return fail(response.status, {
+                    message: errorMessage || 'Failed to delete message'
+                });
+            }
+
             return { success: true };
         } catch (error) {
             console.error('Failed to delete reported message', error);

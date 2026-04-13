@@ -1,11 +1,37 @@
 <script>
     import { enhance } from '$app/forms';
+    import { showToast } from '$lib/toast.svelte.js';
 
     /** @type {import('./$types').PageProps} */
     let { data } = $props();
 
     const reportedUser = $derived.by(() => data.reportedUser);
-    const reportedMessages = $derived.by(() => data.reportedMessages ?? []);
+    const reportedMessagesData = $derived.by(() => data.reportedMessages ?? []);
+    let reportedMessages = $state([]);
+
+    $effect(() => {
+        reportedMessages = [...reportedMessagesData];
+    });
+
+    const handleDeleteEnhance = () => {
+        return async ({ result, formData }) => {
+            if (result.type === 'failure' || result.type === 'error') {
+                showToast('Failed to delete message', 'error');
+                return;
+            }
+
+            if (result.type !== 'success') {
+                return;
+            }
+
+            const messageId = formData.get('messageId')?.toString();
+            if (!messageId) {
+                return;
+            }
+
+            reportedMessages = reportedMessages.filter((message) => message.id !== messageId);
+        };
+    };
 </script>
 
 <div class="max-w-4xl mx-auto px-4 py-6">
@@ -22,17 +48,24 @@
     </p>
 
     {#if reportedMessages.length}
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-3 space-y-3">
             {#each reportedMessages as message (message.id)}
-                <div class="px-4 py-4">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div class="min-w-0">
-                            <div class="text-xs text-gray-500 mb-1">
-                                Reported: {message.reportedAt} | Sent: {message.timestamp}
+                            <div class="text-xs text-gray-500 mb-2">
+                                {message.reportCount} report(s) | Sent: {message.timestamp}
                             </div>
-                            <div class="mb-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Report Reason</p>
-                                <p class="text-sm text-gray-800 wrap-break-word">{message.reason}</p>
+                            <div class="mb-3 space-y-2">
+                                {#each message.reports as report, index (report.reportId)}
+                                <div class="rounded-lg border border-gray-300 bg-white px-3 py-2">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Report #{index + 1}</p>
+                                        <p class="text-xs text-gray-500">{report.reportedAt}</p>
+                                    </div>
+                                    <p class="text-sm text-gray-800 wrap-break-word">{report.reason}</p>
+                                </div>
+                                {/each}
                             </div>
                             <div class="rounded-lg border border-gray-300 bg-white px-3 py-2 mb-2">
                                 <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-600 mb-1">Message Content</p>
@@ -49,7 +82,7 @@
                             {/if}
                         </div>
 
-                        <form method="POST" action="?/deleteMessage" use:enhance class="sm:ml-4">
+                        <form method="POST" action="?/deleteMessage" use:enhance={handleDeleteEnhance} class="sm:ml-4">
                             <input type="hidden" name="messageId" value={message.id} />
                             <button type="submit" class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100 hover:bg-red-100">
                                 Delete
