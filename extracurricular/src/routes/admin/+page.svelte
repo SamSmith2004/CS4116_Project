@@ -38,7 +38,7 @@
 
                         <div class="grid w-full grid-cols-2 gap-2">
                             {#if user.isMessageReport}
-                                <p class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</p>
+                                <a href={`/admin/reports/${user.id}`} class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</a>
                             {/if}
                             <p class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
                             <button class="text-sm px-3 py-1 rounded-md border border-gray-200">Ban</button>
@@ -64,7 +64,7 @@
 
                     <div class="flex items-center gap-2">
                         {#if user.isMessageReport}
-                            <p class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</p>
+                            <a href={`/admin/reports/${user.id}`} class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</a>
                         {/if}
                         <p class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
                         <button class="text-sm px-3 py-1 rounded-md border border-gray-200">Ban</button>

@@ -1,0 +1,68 @@
+<script>
+    import { enhance } from '$app/forms';
+
+    /** @type {import('./$types').PageProps} */
+    let { data } = $props();
+
+    const reportedUser = $derived.by(() => data.reportedUser);
+    const reportedMessages = $derived.by(() => data.reportedMessages ?? []);
+</script>
+
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="mb-5">
+        <a href="/admin" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+            <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+            Back to admin
+        </a>
+    </div>
+
+    <h1 class="text-2xl font-semibold text-gray-900 mb-1">Reported Messages</h1>
+    <p class="text-sm text-gray-500 mb-5">
+        User: {reportedUser.name} ({reportedUser.email})
+    </p>
+
+    {#if reportedMessages.length}
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
+            {#each reportedMessages as message (message.id)}
+                <div class="px-4 py-4">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="min-w-0">
+                            <div class="text-xs text-gray-500 mb-1">
+                                Reported: {message.reportedAt} | Sent: {message.timestamp}
+                            </div>
+                            <div class="mb-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Report Reason</p>
+                                <p class="text-sm text-gray-800 wrap-break-word">{message.reason}</p>
+                            </div>
+                            <div class="rounded-lg border border-gray-300 bg-white px-3 py-2 mb-2">
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-600 mb-1">Message Content</p>
+                                <div class="text-sm text-gray-900 wrap-break-word">
+                                    {#if message.text}
+                                        {message.text}
+                                    {:else}
+                                        <span class="text-gray-500 italic">No text message</span>
+                                    {/if}
+                                </div>
+                            </div>
+                            {#if message.mediaUrl}
+                                <a href={message.mediaUrl} target="_blank" rel="noreferrer" class="text-sm text-blue-600 hover:text-blue-700">Open attached media</a>
+                            {/if}
+                        </div>
+
+                        <form method="POST" action="?/deleteMessage" use:enhance class="sm:ml-4">
+                            <input type="hidden" name="messageId" value={message.id} />
+                            <button type="submit" class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100 hover:bg-red-100">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {:else}
+        <div class="flex flex-col items-center justify-center py-12 text-gray-500">
+            <span class="material-symbols-rounded text-[42px] mb-2">chat</span>
+            <p class="text-sm">No reported messages found for this user</p>
+        </div>
+    {/if}
+</div>
