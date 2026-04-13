@@ -2,30 +2,12 @@ import { db } from '$lib/server/db';
 import { desc, eq } from 'drizzle-orm';
 import { user } from '$lib/server/db/auth.schema';
 import { banned, reports, userDetails } from '$lib/server/db/schema';
-import { redirect } from '@sveltejs/kit';
-
-function formatDate(value) {
-    if (!value) return 'Unknown';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return 'Unknown';
-    return date.toISOString().slice(0, 10);
-}
+import { requireAdmin } from '$lib/server/admin';
+import { formatIsoDate } from '$lib/utils/date';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals }) {
-    const sessionUser = locals.user;
-    if (!sessionUser) {
-        throw redirect(302, '/login');
-    }
-
-    const query = await db.select({ isAdmin: user.isAdmin })
-        .from(user)
-        .where(eq(user.id, sessionUser.id));
-
-    const isAdmin = query[0]?.isAdmin;
-    if (!isAdmin) {
-        throw redirect(303, '/');
-    }
+    await requireAdmin(locals);
 
     const reportRows = await db
         .select({
@@ -66,7 +48,7 @@ export async function load({ locals }) {
         name: row.name || 'Unknown User',
         email: row.email,
         reason: row.reason || 'No reason provided',
-        reportedAt: formatDate(row.reportedAt),
+        reportedAt: formatIsoDate(row.reportedAt),
         isMessageReport: hasMessageReportByUser.get(row.reportedUserId) ?? false,
         avatarUrl: row.avatarUrl || null,
         banned: false

@@ -3,30 +3,8 @@ import { redirect, fail } from '@sveltejs/kit';
 import { and, desc, eq, isNotNull } from 'drizzle-orm';
 import { user } from '$lib/server/db/auth.schema';
 import { messages, reports } from '$lib/server/db/schema';
-
-function formatDateTime(value) {
-    if (!value) return 'Unknown';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return 'Unknown';
-    return date.toISOString().replace('T', ' ').slice(0, 16);
-}
-
-async function requireAdmin(locals) {
-    const sessionUser = locals.user;
-    if (!sessionUser) {
-        throw redirect(302, '/login');
-    }
-
-    const query = await db.select({ isAdmin: user.isAdmin })
-        .from(user)
-        .where(eq(user.id, sessionUser.id));
-
-    if (!query[0]?.isAdmin) {
-        throw redirect(303, '/');
-    }
-
-    return sessionUser;
-}
+import { requireAdmin } from '$lib/server/admin';
+import { formatIsoDateTime } from '$lib/utils/date';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals, params }) {
@@ -83,11 +61,11 @@ export async function load({ locals, params }) {
             id: row.messageId,
             reportId: row.reportId,
             reason: row.reason || 'No reason provided',
-            reportedAt: formatDateTime(row.reportedAt),
+            reportedAt: formatIsoDateTime(row.reportedAt),
             text: row.messageText || '',
             mediaUrl: row.mediaUrl,
             senderId: row.senderId,
-            timestamp: formatDateTime(row.timestamp)
+            timestamp: formatIsoDateTime(row.timestamp)
         });
     }
 
