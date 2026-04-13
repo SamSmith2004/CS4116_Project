@@ -31,6 +31,7 @@ export async function load({ locals }) {
         .select({
             reportId: reports.id,
             reason: reports.reason,
+            messageId: reports.messageId,
             reportedAt: reports.createdAt,
             reportedUserId: reports.reportedUserId,
             avatarUrl: userDetails.avatarUrl,
@@ -43,8 +44,17 @@ export async function load({ locals }) {
         .orderBy(desc(reports.createdAt));
 
     const latestReportByUser = new Map();
+    const hasMessageReportByUser = new Map();
     for (const row of reportRows) {
         const key = row.reportedUserId;
+
+        if (!hasMessageReportByUser.has(key)) {
+            hasMessageReportByUser.set(key, false);
+        }
+        if (row.messageId) {
+            hasMessageReportByUser.set(key, true);
+        }
+
         if (!latestReportByUser.has(key)) {
             latestReportByUser.set(key, row);
         }
@@ -57,6 +67,7 @@ export async function load({ locals }) {
         email: row.email,
         reason: row.reason || 'No reason provided',
         reportedAt: formatDate(row.reportedAt),
+        isMessageReport: hasMessageReportByUser.get(row.reportedUserId) ?? false,
         avatarUrl: row.avatarUrl || null,
         banned: false
     }));
