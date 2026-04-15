@@ -3,6 +3,8 @@
     import { showToast } from '$lib/toast.svelte.js';
     let { data } = $props();
 
+    let isEditing = $state(false);
+
     // svelte-ignore state_referenced_locally
     let profile = $state({
         fname: data.user?.fname || '',
@@ -35,11 +37,17 @@
     function handleSubmit() {
         return async ({ result }) => {
             if (result.type === 'success') {
-                window.location.reload();
+                isEditing = false;
             } else if (result.type === 'error') {
                 showToast(result.data?.message || 'Something went wrong.');
             }
         };
+    }
+
+    function calculateAge(dob) {
+        if (!dob) return '';
+        const diff = Date.now() - new Date(dob).getTime();
+        return Math.abs(new Date(diff).getUTCFullYear() - 1970);
     }
 </script>
 
@@ -47,10 +55,19 @@
     <header class="grid grid-cols-3 items-center bg-white py-4 px-8 shadow-sm border-b border-gray-200">
         <div></div>
         <h1 class="text-center text-2xl font-bold text-gray-800 tracking-widest uppercase">Edit Profile</h1>
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-3">
+        {#if !isEditing}
+            <button onclick={() => isEditing = true} class="bg-gray-100 text-gray-700 px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
+                Modify
+            </button>
+        {:else}
+            <button onclick={() => isEditing = false} class="text-gray-500 px-4 py-2 text-sm font-medium">
+                Cancel
+            </button>
             <button form="profile-form" class="bg-[#0C00BF] text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-blue-800 transition-colors">
                 Save
             </button>
+        {/if}
         </div>
     </header>
 
@@ -80,13 +97,13 @@
                 <div class="w-full md:w-2/3">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                         <div>
-                            <label for="fname" class="block text-xs font-bold uppercase text-gray-500 mb-1">First Name</label>
-                            <input id="fname" type="text" name="fname" placeholder="Name" bind:value={profile.fname} class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                        </div>
-
-                        <div>
-                            <label for="lname" class="block text-xs font-bold uppercase text-gray-500 mb-1">Last Name</label>
-                            <input id="lname" type="text" name="lname" placeholder="Surname" bind:value={profile.lname} class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        <label class="block text-xs font-bold uppercase text-gray-400 mb-1">First Name
+                        </label>
+                        {#if isEditing}
+                            <input type="text" name="fname" bind:value={profile.fname} class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                        {:else}
+                            <p class="p-2 text-sm font-semibold text-gray-900">{profile.fname || 'Non renseigné'}</p>
+                        {/if}
                         </div>
 
                         <div>
@@ -131,25 +148,33 @@
                     </div>
 
                     <div class="mb-6">
-                        <label for="bio" class="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-tight">Bio</label>
-                        <textarea id="bio" name="bio" bind:value={profile.bio} placeholder="Tell us more about you..."
-                            class="w-full border border-gray-300 rounded-xl p-4 text-sm h-48 resize-none outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <label class="block text-xs font-bold uppercase text-gray-400 mb-2 tracking-tight">Bio</label>
+                    {#if isEditing}
+                        <textarea name="bio" bind:value={profile.bio} class="w-full border border-gray-300 rounded-xl p-4 text-sm h-48 resize-none outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    {:else}
+                        <div class="w-full bg-gray-50 rounded-xl p-4 text-sm text-gray-600 italic leading-relaxed">
+                            {profile.bio || "Tell us more about you..."}
+                        </div>
+                    {/if}
                     </div>
 
-                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                        <span class="block text-xs font-bold uppercase text-gray-500 mb-4 tracking-tight">Interests</span>
-                        <div class="flex flex-wrap gap-2">
-                            {#each allInterests as interest}
-                                <label class="group cursor-pointer">
-                                    <input type="checkbox" name="interests" value={interest}
-                                        bind:group={profile.selectedInterests} class="hidden peer" />
-                                    <span class="px-4 py-2 rounded-full border border-gray-300 text-sm block transition-all
-                                        peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600">
-                                        {interest}
-                                    </span>
-                                </label>
-                            {/each}
-                        </div>
+                    <div class="flex flex-wrap gap-2">
+                    {#if isEditing}
+                        {#each allInterests as interest}
+                            <label class="group cursor-pointer">
+                                <input type="checkbox" name="interests" value={interest} bind:group={profile.selectedInterests} class="hidden peer" />
+                                <span class="px-4 py-2 rounded-full border border-gray-300 text-sm block transition-all peer-checked:bg-blue-600 peer-checked:text-white">
+                                    {interest}
+                                </span>
+                            </label>
+                        {/each}
+                    {:else}
+                        {#each profile.selectedInterests as interest}
+                            <span class="px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
+                                {interest}
+                            </span>
+                        {/each}
+                    {/if}
                     </div>
                 </div>
             </div>
