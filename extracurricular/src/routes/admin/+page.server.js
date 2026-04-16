@@ -76,6 +76,25 @@ export async function load({ locals }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
+    deleteReports: async ({ locals, request }) => {
+        await requireAdmin(locals);
+
+        const formData = await request.formData();
+        const userId = formData.get('userId')?.toString();
+
+        if (!userId) {
+            return fail(400, { message: 'Reported user id is required' });
+        }
+
+        try {
+            await db.delete(reports).where(eq(reports.reportedUserId, userId));
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to delete reports', error);
+            return fail(500, { message: 'Failed to delete reports' });
+        }
+    },
+
     banUser: async ({ locals, request }) => {
         await requireAdmin(locals);
 

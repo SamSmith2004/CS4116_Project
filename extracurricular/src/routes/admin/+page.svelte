@@ -7,6 +7,7 @@
     const reported = $derived.by(() => data.reported ?? []);
     const banned = $derived.by(() => data.banned ?? []);
     let selectedUser = $state(null);
+    let selectedReportTarget = $state(null);
 
     function handleSearch() {
         // TODO
@@ -18,6 +19,14 @@
 
     function closeBanModal() {
         selectedUser = null;
+    }
+
+    function openDeleteReportModal(user) {
+        selectedReportTarget = user;
+    }
+
+    function closeDeleteReportModal() {
+        selectedReportTarget = null;
     }
 </script>
 
@@ -63,7 +72,13 @@
                             >
                                 Ban
                             </button>
-                            <button class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100">Delete</button>
+                            <button
+                                type="button"
+                                class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100 hover:bg-red-100"
+                                onclick={() => openDeleteReportModal({ userId: user.userId, name: user.name })}
+                            >
+                                Delete Report(s)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -95,7 +110,13 @@
                         >
                             Ban
                         </button>
-                        <button class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100">Delete</button>
+                        <button
+                            type="button"
+                            class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100 hover:bg-red-100"
+                            onclick={() => openDeleteReportModal({ userId: user.userId, name: user.name })}
+                        >
+                            Delete Report(s)
+                        </button>
                     </div>
                 </div>
             {/each}
@@ -156,6 +177,37 @@
                 </button>
                 <button type="submit" class="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700 hover:bg-red-100">
                     Yes, ban permanently
+                </button>
+            </form>
+        </div>
+    </div>
+{/if}
+
+{#if selectedReportTarget}
+    <div class="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <button
+            type="button"
+            class="absolute inset-0 bg-black/40"
+            aria-label="Close delete report confirmation"
+            onclick={closeDeleteReportModal}
+        ></button>
+
+        <div class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-xl">
+            <h3 class="text-lg font-semibold text-gray-900">Delete Report(s)?</h3>
+            <p class="mt-2 text-sm text-gray-600">
+                You are deleting report records for <span class="font-semibold text-gray-900">{selectedReportTarget.name}</span>.
+            </p>
+            <p class="mt-1 text-sm text-gray-600">
+                This only removes all reports about this user. It does <span class="font-semibold text-gray-900">not</span> delete or ban the user account.
+            </p>
+
+            <form method="POST" action="?/deleteReports" class="mt-5 flex items-center justify-end gap-2">
+                <input type="hidden" name="userId" value={selectedReportTarget.userId} />
+                <button type="button" class="rounded-md border border-gray-200 px-3 py-1 text-sm" onclick={closeDeleteReportModal}>
+                    Cancel
+                </button>
+                <button type="submit" class="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700 hover:bg-red-100">
+                    Yes, delete report(s)
                 </button>
             </form>
         </div>
