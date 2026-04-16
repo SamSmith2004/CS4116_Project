@@ -1,24 +1,143 @@
-import { useSession } from '$lib/auth-client';
 import { db } from '$lib/server/db';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { user } from '$lib/server/db/auth.schema';
-import { redirect } from '@sveltejs/kit';
+import { banned, reports, userDetails } from '$lib/server/db/schema';
+import { requireAdmin } from '$lib/server/admin';
+import { formatIsoDate } from '$lib/utils/date';
+import { fail } from '@sveltejs/kit';
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
+
+const UPLOADS_DIR = '/app/uploads/';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals }) {
-    const sessionUser = locals.user;
-    if (!sessionUser) {
-        redirect(302, "/login");
+    await requireAdmin(locals);
+
+    const reportRows = await db
+        .select({
+            reportId: reports.id,
+            reason: reports.reason,
+            messageId: reports.messageId,
+            reportedAt: reports.createdAt,
+            reportedUserId: reports.reportedUserId,
+            avatarUrl: userDetails.avatarUrl,
+            name: user.name,
+            email: user.email
+        })
+        .from(reports)
+        .leftJoin(user, eq(user.id, reports.reportedUserId))
+        .leftJoin(userDetails, eq(user.id, userDetails.userId))
+        .orderBy(desc(reports.createdAt));
+
+    const latestReportByUser = new Map();
+    const hasMessageReportByUser = new Map();
+    for (const row of reportRows) {
+        const key = row.reportedUserId;
+
+        if (!hasMessageReportByUser.has(key)) {
+            hasMessageReportByUser.set(key, false);
+        }
+        if (row.messageId) {
+            hasMessageReportByUser.set(key, true);
+        }
+
+        if (!latestReportByUser.has(key)) {
+            latestReportByUser.set(key, row);
+        }
     }
 
-    const query = await db.select({ isAdmin: user.isAdmin })
-        .from(user)
-        .where(eq(user.id, sessionUser.id));
+    const reported = Array.from(latestReportByUser.values()).map((row) => ({
+        id: row.reportId,
+        userId: row.reportedUserId,
+        name: row.name || 'Unknown User',
+        email: row.email,
+        reason: row.reason || 'No reason provided',
+        reportedAt: formatIsoDate(row.reportedAt),
+        isMessageReport: hasMessageReportByUser.get(row.reportedUserId) ?? false,
+        avatarUrl: row.avatarUrl || null,
+        banned: false
+    }));
 
-    const isAdmin = query[0]?.isAdmin;
-    if (!isAdmin) {
-        redirect(303, "/");
-    }
+    const bannedRows = await db
+        .select({
+            banId: banned.id,
+            email: banned.email
+        })
+        .from(banned)
 
-    return {};
+    const bannedUsers = bannedRows.map((row) => ({
+        id: row.banId,
+        email: row.email,
+        banned: true
+    }));
+
+    return {
+        reported,
+        banned: bannedUsers
+    };
 }
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+    deleteReports: async ({ locals, request }) => {
+        await requireAdmin(locals);
+
+        const formData = await request.formData();
+        const userId = formData.get('userId')?.toString();
+
+        if (!userId) {
+            return fail(400, { message: 'Reported user id is required' });
+        }
+
+        try {
+            await db.delete(reports).where(eq(reports.reportedUserId, userId));
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to delete reports', error);
+            return fail(500, { message: 'Failed to delete reports' });
+        }
+    },
+
+    banUser: async ({ locals, request }) => {
+        await requireAdmin(locals);
+
+        const formData = await request.formData();
+        const userId = formData.get('userId')?.toString();
+
+        if (!userId) {
+            return fail(400, { message: 'User id is required' });
+        }
+
+        const [existingUser] = await db
+            .select({
+                id: user.id,
+                email: user.email
+            })
+            .from(user)
+            .where(eq(user.id, userId));
+
+        if (!existingUser?.email) {
+            return fail(404, { message: 'User not found' });
+        }
+
+        try {
+            const avatarDir = path.join(UPLOADS_DIR, userId, 'avatar');
+            await rm(avatarDir, { recursive: true, force: true });
+
+            await db.transaction(async (tx) => {
+                await tx
+                    .insert(banned)
+                    .values({ email: existingUser.email })
+                    .onConflictDoNothing();
+
+                await tx.delete(user).where(eq(user.id, userId));
+            });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to ban user', error);
+            return fail(500, { message: 'Failed to ban user' });
+        }
+    }
+};

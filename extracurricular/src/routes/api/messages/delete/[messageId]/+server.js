@@ -20,7 +20,10 @@ export async function DELETE({ params, locals }) {
     try {
         const [msg] = await db.select().from(messagesTable).where(eq(messagesTable.id, messageId));
         if (!msg) throw error(404, 'Message not found');
-        if (msg.senderId !== sessionUser.id) throw error(403, 'Not allowed to delete this message');
+        
+        if (msg.senderId !== sessionUser.id && !sessionUser.isAdmin) {
+            throw error(403, 'Not allowed to delete this message');
+        }
 
         if (msg.mediaUrl) {
             try {
