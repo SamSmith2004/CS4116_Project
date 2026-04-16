@@ -5,6 +5,10 @@ import { banned, reports, userDetails } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin';
 import { formatIsoDate } from '$lib/utils/date';
 import { fail } from '@sveltejs/kit';
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
+
+const UPLOADS_DIR = '/app/uploads/';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals }) {
@@ -118,6 +122,9 @@ export const actions = {
         }
 
         try {
+            const avatarDir = path.join(UPLOADS_DIR, userId, 'avatar');
+            await rm(avatarDir, { recursive: true, force: true });
+
             await db.transaction(async (tx) => {
                 await tx
                     .insert(banned)
