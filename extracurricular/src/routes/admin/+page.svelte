@@ -64,7 +64,7 @@
                             {#if user.isMessageReport}
                                 <a href={`/admin/reports/${user.id}`} class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</a>
                             {/if}
-                            <p class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
+                            <a href={`/admin/profile/${user.userId}`} class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</a>
                             <button
                                 type="button"
                                 class="text-sm px-3 py-1 rounded-md border border-gray-200"
@@ -102,7 +102,7 @@
                         {#if user.isMessageReport}
                             <a href={`/admin/reports/${user.id}`} class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</a>
                         {/if}
-                        <p class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
+                        <a href={`/admin/profile/${user.userId}`} class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</a>
                         <button
                             type="button"
                             class="text-sm px-3 py-1 rounded-md border border-gray-200"
