@@ -2,13 +2,22 @@
     import TopBar from '$lib/components/TopBar.svelte';
 
     /** @type {import('./$types').PageProps} */
-    let { data } = $props();
+    let { data, form } = $props();
 
     const reported = $derived.by(() => data.reported ?? []);
     const banned = $derived.by(() => data.banned ?? []);
+    let selectedUser = $state(null);
 
     function handleSearch() {
         // TODO
+    }
+
+    function openBanModal(user) {
+        selectedUser = user;
+    }
+
+    function closeBanModal() {
+        selectedUser = null;
     }
 </script>
 
@@ -16,6 +25,12 @@
 
 <div class="max-w-4xl mx-auto px-4 py-6">
     <h1 class="text-2xl font-semibold text-gray-900 mb-4">Reported Users</h1>
+
+    {#if form?.message}
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {form.message}
+        </div>
+    {/if}
 
     {#if reported.length}
         <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden mb-6">
@@ -41,7 +56,13 @@
                                 <a href={`/admin/reports/${user.id}`} class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</a>
                             {/if}
                             <p class="text-center text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
-                            <button class="text-sm px-3 py-1 rounded-md border border-gray-200">Ban</button>
+                            <button
+                                type="button"
+                                class="text-sm px-3 py-1 rounded-md border border-gray-200"
+                                onclick={() => openBanModal({ userId: user.userId, name: user.name, email: user.email })}
+                            >
+                                Ban
+                            </button>
                             <button class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100">Delete</button>
                         </div>
                     </div>
@@ -67,7 +88,13 @@
                             <a href={`/admin/reports/${user.id}`} class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">View Messages</a>
                         {/if}
                         <p class="text-sm px-3 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Edit Profile</p>
-                        <button class="text-sm px-3 py-1 rounded-md border border-gray-200">Ban</button>
+                        <button
+                            type="button"
+                            class="text-sm px-3 py-1 rounded-md border border-gray-200"
+                            onclick={() => openBanModal({ userId: user.userId, name: user.name, email: user.email })}
+                        >
+                            Ban
+                        </button>
                         <button class="text-sm px-3 py-1 rounded-md bg-red-50 text-red-600 border border-red-100">Delete</button>
                     </div>
                 </div>
@@ -103,3 +130,34 @@
         </div>
     {/if}
 </div>
+
+{#if selectedUser}
+    <div class="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <button
+            type="button"
+            class="absolute inset-0 bg-black/40"
+            aria-label="Close ban confirmation"
+            onclick={closeBanModal}
+        ></button>
+
+        <div class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-xl">
+            <h3 class="text-lg font-semibold text-gray-900">Ban User?</h3>
+            <p class="mt-2 text-sm text-gray-600">
+                Are you sure you want to permanently ban <span class="font-semibold text-gray-900">{selectedUser.name}</span>?
+            </p>
+            <p class="mt-1 text-sm text-gray-600">
+                This will delete their account and add <span class="font-semibold text-gray-900">{selectedUser.email ?? 'their email'}</span> to the ban list.
+            </p>
+
+            <form method="POST" action="?/banUser" class="mt-5 flex items-center justify-end gap-2">
+                <input type="hidden" name="userId" value={selectedUser.userId} />
+                <button type="button" class="rounded-md border border-gray-200 px-3 py-1 text-sm" onclick={closeBanModal}>
+                    Cancel
+                </button>
+                <button type="submit" class="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700 hover:bg-red-100">
+                    Yes, ban permanently
+                </button>
+            </form>
+        </div>
+    </div>
+{/if}
