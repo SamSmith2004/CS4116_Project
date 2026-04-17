@@ -127,12 +127,12 @@
 		searchIndex = 0;
 	}
 
-	async function handleSearchSubmit(event) {
-		event.preventDefault();
-		searchQuery = searchQuery.trim();
-		await executeSearch();
-		showFilterModal = false;
-	}
+  async function handleSearchSubmit(event) {
+    event.preventDefault();
+    searchQuery = searchQuery.trim();
+    await executeSearch();
+    showFilterModal = false;
+  }
 
 	async function openFilterModal() {
 		showFilterModal = true;
@@ -176,10 +176,11 @@
 			return;
 		}
 
-		if (activeGroup === 'recommendations') {
-			recommendationIndex = recommendationIndex + 1;
-		}
-	}
+    if (activeGroup === 'recommendations') {
+      recommendationIndex = recommendationIndex + 1;
+    }
+  }
+
 </script>
 
 <header class="sticky top-0 z-40 w-full border-b border-gray-200 bg-white shadow-sm">
@@ -454,37 +455,29 @@
 								</div>
 							</div>
 
-							<div class="mt-8 grid grid-cols-2 gap-4">
-								<form method="POST" action="?/decide">
-									<input type="hidden" name="requestId" value={visibleMatch.id} />
-									<input type="hidden" name="decision" value="fail" />
-									<input type="hidden" name="group" value={activeGroup} />
-									<button
-										type="submit"
-										disabled={hasSearchActive || !currentMatch}
-										class="w-full rounded-2xl border-2 border-red-200 bg-red-50 px-5 py-4 text-lg font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										Fail
-									</button>
-								</form>
+              <div class="mt-8 grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onclick={handleChoice}
+                  disabled={!currentMatch}
+                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Fail
+                </button>
 
-								<form method="POST" action="?/decide">
-									<input type="hidden" name="requestId" value={visibleMatch.id} />
-									<input type="hidden" name="decision" value="pass" />
-									<input type="hidden" name="group" value={activeGroup} />
-									<button
-										type="submit"
-										disabled={hasSearchActive || !currentMatch}
-										class="w-full rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-5 py-4 text-lg font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										Pass
-									</button>
-								</form>
-							</div>
-						</div>
-					</div>
-				</article>
-			{/if}
-		</section>
-	</div>
+                <button
+                  type="button"
+                  onclick={handleChoice}
+                  disabled={!currentMatch}
+                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Pass
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      {/if}
+    </section>
+  </div>
 </main>
