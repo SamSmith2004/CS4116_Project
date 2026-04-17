@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { db } from '$lib/server/db';
 import { user, userDetails, interests, universityEnum, degreeEnum, interestEnum } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
@@ -73,28 +72,6 @@ export const load = async ({ locals }) => {
     const universityList = universityEnum.enumValues;
     const interestList = interestEnum.enumValues;
     const degreeList = degreeEnum.enumValues;
-=======
-import { fail } from '@sveltejs/kit';
-import { and, eq, or } from 'drizzle-orm';
-
-import { db } from '$lib/server/db';
-import { matches } from '$lib/server/db/schema';
-import { universityTintMap } from '$lib/server/mock-matches';
-import { getHomepageMatchFeed } from '$lib/server/matching';
-
-export const load = async ({ locals }) => {
-    const sessionUser = locals.user;
-
-    if (!sessionUser) {
-        return {
-            requests: [],
-            recommendations: [],
-            universityTintMap
-        };
-    }
-
-    const { requests, recommendations } = await getHomepageMatchFeed(sessionUser.id, { limit: 50 });
->>>>>>> matching-algorithm
 
     return {
         requests: [],
