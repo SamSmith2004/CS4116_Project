@@ -1,8 +1,8 @@
 import { db } from '$lib/server/db';
-import { user, userDetails, interests, universityEnum, degreeEnum, interestEnum } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
+import { user, userDetails, interests, matches, universityEnum, degreeEnum, interestEnum } from '$lib/server/db/schema';
+import { and, eq, or } from 'drizzle-orm';
 import calculateAge from '$lib/utils/age.js';
-
 
 function buildName(profile) {
     const first = profile.fname?.trim() ?? '';
@@ -23,6 +23,22 @@ const universityTintMap = {
     'Trinity College Dublin': '#e8f4ff'
 };
 
+//NOTE: this logic only work one way maybe look at two way at some point
+function orientationAligned(sessionProfile, candidateProfile) {
+    if (!sessionProfile.partnerPref || !candidateProfile.gender) return false;
+    
+    if (sessionProfile.partnerPref === 'both') return true;
+    if (candidateProfile.gender === 'other') return false;
+    return sessionProfile.partnerPref === candidateProfile.gender;
+}
+
+function countCommonInterests(sessionInterests, candidateInterests) {
+    return candidateInterests.reduce((count, interest) => {
+        if (sessionInterests.has(interest)) return count + 1;
+        return count;
+    }, 0);
+}
+
 export const load = async ({ locals }) => {
     const sessionUserId = locals.user?.id;
 
@@ -38,7 +54,9 @@ export const load = async ({ locals }) => {
             university: userDetails.university,
             degree: userDetails.degree,
             bio: userDetails.bio,
-            avatarUrl: userDetails.avatarUrl
+            avatarUrl: userDetails.avatarUrl,
+            partnerPref: userDetails.partnerPref,
+            gender: userDetails.gender
         })
         .from(user)
         .leftJoin(userDetails, eq(user.id, userDetails.userId));
@@ -50,24 +68,73 @@ export const load = async ({ locals }) => {
         })
         .from(interests);
 
+    const existingMatchRows = sessionUserId
+        ? await db
+            .select({
+                matcher: matches.matcher,
+                matched: matches.matched,
+                status: matches.status
+            })
+            .from(matches)
+            .where(
+                or(
+                    eq(matches.matcher, sessionUserId),
+                    eq(matches.matched, sessionUserId)
+                )
+            )
+        : [];
+
+    const excludedUserIds = new Set(
+        existingMatchRows.map((row) => (row.matcher === sessionUserId ? row.matched : row.matcher))
+    );
+
+    function hasMatchAlready(profileId) {
+        return !excludedUserIds.has(profileId);
+    }
+
     const interestsByUser = userInterestsRows.reduce((acc, row) => {
         if (!acc[row.userId]) acc[row.userId] = [];
         if (row.interest) acc[row.userId].push(row.interest);
         return acc;
     }, {});
 
+    const sessionProfile = users.find((profile) => profile.id === sessionUserId);
+    const sessionInterests = new Set(interestsByUser[sessionUserId] ?? []);
+
     const recommendations = users
-        .filter((profile) => profile.id !== sessionUserId)
-        .map((profile) => ({
-            id: profile.id,
-            name: buildName(profile),
-            age: calculateAge(profile.dob),
-            university: profile.university,
-            course: profile.degree,
-            bio: profile.bio ?? 'No bio yet.',
-            interests: interestsByUser[profile.id] ?? [],
-            imageUrl: profile.avatarUrl
-        }));
+        .filter((profile) => profile.id !== sessionUserId
+            && hasMatchAlready(profile.id)
+            && (orientationAligned(sessionProfile, profile)))
+        .map((profile) => {
+            let score = 0;
+
+            if (sessionProfile) {
+                if (sessionProfile.degree === profile.degree) {
+                    score += 5;
+                }
+
+                if (sessionProfile.university === profile.university) {
+                    score += 3;
+                }
+
+                const candidateInterests = interestsByUser[profile.id] ?? [];
+                score += countCommonInterests(sessionInterests, candidateInterests);
+            }
+
+            return {
+                id: profile.id,
+                score,
+                name: buildName(profile),
+                age: calculateAge(profile.dob),
+                university: profile.university,
+                course: profile.degree,
+                bio: profile.bio ?? 'No bio yet.',
+                interests: interestsByUser[profile.id] ?? [],
+                imageUrl: profile.avatarUrl
+            };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
 
     const universityList = universityEnum.enumValues;
     const interestList = interestEnum.enumValues;
