@@ -1,18 +1,26 @@
 import { fail } from '@sveltejs/kit';
+import { and, eq, or } from 'drizzle-orm';
 
-import {
-    requests as seededRequests,
-    recommendations as seededRecommendations,
-    universityTintMap
-} from '$lib/server/mock-matches';
+import { db } from '$lib/server/db';
+import { matches } from '$lib/server/db/schema';
+import { getMatchPageFeed } from '$lib/server/matching';
+import { universityTintMap } from '$lib/server/mock-matches';
 
-let pendingRequests = seededRequests.map((profile) => ({ ...profile }));
-let currentMatches = seededRecommendations.map((profile) => ({ ...profile }));
-let decisionHistory = [];
+export const load = async ({ locals }) => {
+    const sessionUser = locals.user;
+    if (!sessionUser) {
+        return {
+            requests: [],
+            currentMatches: [],
+            decisionHistory: [],
+            universityTintMap
+        };
+    }
 
-export const load = async () => {
+    const { requests, currentMatches, decisionHistory } = await getMatchPageFeed(sessionUser.id);
+
     return {
-        requests: pendingRequests,
+        requests,
         currentMatches,
         decisionHistory,
         universityTintMap
@@ -20,54 +28,58 @@ export const load = async () => {
 };
 
 export const actions = {
-    decide: async ({ request }) => {
+    decide: async ({ request, locals }) => {
+        const sessionUser = locals.user;
+        if (!sessionUser) return fail(401, { message: 'Invalid session' });
+
         const formData = await request.formData();
-        const requestId = Number(formData.get('requestId'));
+        const requestId = formData.get('requestId')?.toString();
         const decision = formData.get('decision')?.toString();
 
-        if (!Number.isFinite(requestId) || !['pass', 'fail'].includes(decision)) {
+        if (!requestId || !['pass', 'fail'].includes(decision)) {
             return fail(400, { message: 'Invalid decision payload.' });
         }
 
-        const selectedIndex = pendingRequests.findIndex((profile) => profile.id === requestId);
-        if (selectedIndex === -1) {
+        const nextStatus = decision === 'pass' ? 'matched' : 'unmatched';
+
+        const updatedRows = await db
+            .update(matches)
+            .set({ status: nextStatus })
+            .where(and(eq(matches.matcher, requestId), eq(matches.matched, sessionUser.id), eq(matches.status, 'pending')))
+            .returning({ id: matches.id });
+
+        if (updatedRows.length === 0) {
             return fail(404, { message: 'Profile no longer available.' });
-        }
-
-        const [selectedProfile] = pendingRequests.splice(selectedIndex, 1);
-
-        decisionHistory = [
-            {
-                id: selectedProfile.id,
-                name: selectedProfile.name,
-                age: selectedProfile.age,
-                course: selectedProfile.course,
-                bio: selectedProfile.bio,
-                imageUrl: selectedProfile.imageUrl,
-                decision,
-                source: 'matched-with-you'
-            },
-            ...decisionHistory
-        ];
-
-        if (decision === 'pass' && !currentMatches.some((profile) => profile.id === selectedProfile.id)) {
-            currentMatches = [selectedProfile, ...currentMatches];
         }
 
         return { success: true };
     },
-    unmatch: async ({ request }) => {
-        const formData = await request.formData();
-        const matchId = Number(formData.get('matchId'));
+    unmatch: async ({ request, locals }) => {
+        const sessionUser = locals.user;
+        if (!sessionUser) return fail(401, { message: 'Invalid session' });
 
-        if (!Number.isFinite(matchId)) {
+        const formData = await request.formData();
+        const matchId = formData.get('matchId')?.toString();
+
+        if (!matchId) {
             return fail(400, { message: 'Invalid unmatch payload.' });
         }
 
-        const previousLength = currentMatches.length;
-        currentMatches = currentMatches.filter((profile) => profile.id !== matchId);
+        const updatedRows = await db
+            .update(matches)
+            .set({ status: 'unmatched' })
+            .where(
+                and(
+                    or(
+                        and(eq(matches.matcher, sessionUser.id), eq(matches.matched, matchId)),
+                        and(eq(matches.matcher, matchId), eq(matches.matched, sessionUser.id))
+                    ),
+                    eq(matches.status, 'matched')
+                )
+            )
+            .returning({ id: matches.id });
 
-        if (currentMatches.length === previousLength) {
+        if (updatedRows.length === 0) {
             return fail(404, { message: 'Match not found.' });
         }
 
