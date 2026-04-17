@@ -35,7 +35,24 @@
 
     let showDeleteModal = $state(false);
     let deleteTarget = $state(null);
-    
+
+    function containsPhoneNumber(text = '') {
+        if (!text) return false;
+
+        const noAreaCodeNineToTenDigits = /\b\d{9,10}\b/;
+        const plusAreaCodeWithLeadingZero = /\+\d{1,3}[\s.-]?0\d{8,10}\b/;
+        const plusAreaCodeWithoutLeadingZero = /\+\d{1,3}[\s.-]?[1-9]\d{7,9}\b/;
+        const areaCodeWithLeadingZero = /\b0\d{1,4}[\s.-]\d{3,4}[\s.-]\d{4}\b/;
+        const areaCodeWithoutLeadingZero = /\b[1-9]\d{1,4}[\s.-]\d{3,4}[\s.-]\d{4}\b/;
+
+        return (
+            noAreaCodeNineToTenDigits.test(text) ||
+            plusAreaCodeWithLeadingZero.test(text) ||
+            plusAreaCodeWithoutLeadingZero.test(text) ||
+            areaCodeWithLeadingZero.test(text) ||
+            areaCodeWithoutLeadingZero.test(text)
+        );
+    }
 
     function handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -51,6 +68,11 @@
         const file = fileInput?.files?.[0];
         if (!content && !file) {
             showToast('Please enter a message or attach an image', 'error');
+            return;
+        }
+        
+        if (content && containsPhoneNumber(content)) {
+            showToast('Message not sent: phone numbers are not allowed.', 'error');
             return;
         }
 

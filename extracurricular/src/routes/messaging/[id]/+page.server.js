@@ -8,6 +8,24 @@ import { mkdir, writeFile } from 'fs/promises';
 const UPLOADS_DIR = '/app/uploads'; 
 // const UPLOADS_DIR = 'src/lib/assets/uploads'; // Dev
 
+function containsPhoneNumber(text = '') {
+    if (!text) return false;
+
+    const noAreaCodeNineToTenDigits = /\b\d{9,10}\b/;
+    const plusAreaCodeWithLeadingZero = /\+\d{1,3}[\s.-]?0\d{8,10}\b/;
+    const plusAreaCodeWithoutLeadingZero = /\+\d{1,3}[\s.-]?[1-9]\d{7,9}\b/;
+    const areaCodeWithLeadingZero = /\b0\d{1,4}[\s.-]\d{3,4}[\s.-]\d{4}\b/;
+    const areaCodeWithoutLeadingZero = /\b[1-9]\d{1,4}[\s.-]\d{3,4}[\s.-]\d{4}\b/;
+
+    return (
+        noAreaCodeNineToTenDigits.test(text) ||
+        plusAreaCodeWithLeadingZero.test(text) ||
+        plusAreaCodeWithoutLeadingZero.test(text) ||
+        areaCodeWithLeadingZero.test(text) ||
+        areaCodeWithoutLeadingZero.test(text)
+    );
+}
+
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals, params }) => {
     const sessionUser = locals.user;
@@ -66,6 +84,9 @@ export const actions = {
 
         if (!receiverId) return fail(400, { message: 'Invalid recipient' });
         if (!content && !(media && media.size)) return fail(400, { message: 'Invalid message' });
+        if (content && containsPhoneNumber(content)) {
+            return fail(400, { message: 'Phone numbers are not allowed in messages.' });
+        }
 
         const [convo] = await db.select().from(convos).where(eq(convos.id, convoId));
         if (!convo) return fail(404, { message: 'Conversation not found' });
