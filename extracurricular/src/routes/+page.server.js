@@ -4,6 +4,10 @@ import { user, userDetails, interests, matches, universityEnum, degreeEnum, inte
 import { and, eq, or } from 'drizzle-orm';
 import calculateAge from '$lib/utils/age.js';
 
+const UNIVERISTY_WEIGHT = 5;
+const DEGREE_WEIGHT = 3;
+const INTEREST_WEIGHT = 1;
+
 function buildName(profile) {
     const first = profile.fname?.trim() ?? '';
     const last = profile.lname?.trim() ?? '';
@@ -23,18 +27,24 @@ const universityTintMap = {
     'Trinity College Dublin': '#e8f4ff'
 };
 
-//NOTE: this logic only work one way maybe look at two way at some point
-function orientationAligned(sessionProfile, candidateProfile) {
+function isOrientationAligned(partnerPref, otherGender) {
+    if (partnerPref === 'both') return true;
+    if (otherGender === 'other') return false;
+    return partnerPref === otherGender;
+}
+
+function areUsersOrientationAligned(sessionProfile, candidateProfile) {
     if (!sessionProfile.partnerPref || !candidateProfile.gender) return false;
-    
-    if (sessionProfile.partnerPref === 'both') return true;
-    if (candidateProfile.gender === 'other') return false;
-    return sessionProfile.partnerPref === candidateProfile.gender;
+
+    return (
+        isOrientationAligned(sessionProfile.partnerPref, candidateProfile.gender) &&
+        isOrientationAligned(candidateProfile.partnerPref, sessionProfile.gender)
+    );
 }
 
 function countCommonInterests(sessionInterests, candidateInterests) {
     return candidateInterests.reduce((count, interest) => {
-        if (sessionInterests.has(interest)) return count + 1;
+        if (sessionInterests.has(interest)) return count + INTEREST_WEIGHT;
         return count;
     }, 0);
 }
@@ -104,17 +114,17 @@ export const load = async ({ locals }) => {
     const recommendations = users
         .filter((profile) => profile.id !== sessionUserId
             && hasMatchAlready(profile.id)
-            && (orientationAligned(sessionProfile, profile)))
+            && (areUsersOrientationAligned(sessionProfile, profile)))
         .map((profile) => {
             let score = 0;
 
             if (sessionProfile) {
                 if (sessionProfile.degree === profile.degree) {
-                    score += 5;
+                    score += DEGREE_WEIGHT;
                 }
 
                 if (sessionProfile.university === profile.university) {
-                    score += 3;
+                    score += UNIVERISTY_WEIGHT;
                 }
 
                 const candidateInterests = interestsByUser[profile.id] ?? [];
