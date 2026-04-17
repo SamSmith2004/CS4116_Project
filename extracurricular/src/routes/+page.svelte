@@ -125,6 +125,7 @@
     searchIndex = 0;
   }
 
+<<<<<<< HEAD
   async function handleSearchSubmit(event) {
     event.preventDefault();
     searchQuery = searchQuery.trim();
@@ -179,6 +180,8 @@
     }
   }
 
+=======
+>>>>>>> matching-algorithm
 </script>
 
 <header class="sticky top-0 z-40 w-full bg-white border-b border-gray-200 shadow-sm">
@@ -389,6 +392,7 @@
               </div>
 
               <div class="mt-8 grid grid-cols-2 gap-4">
+<<<<<<< HEAD
                 <button
                   type="button"
                   onclick={handleChoice}
@@ -406,6 +410,33 @@
                 >
                   Pass
                 </button>
+=======
+                <form method="POST" action="?/decide">
+                  <input type="hidden" name="requestId" value={visibleMatch.id} />
+                  <input type="hidden" name="decision" value="fail" />
+                  <input type="hidden" name="group" value={activeGroup} />
+                  <button
+                    type="submit"
+                    disabled={hasSearchActive || !currentMatch}
+                    class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Fail
+                  </button>
+                </form>
+
+                <form method="POST" action="?/decide">
+                  <input type="hidden" name="requestId" value={visibleMatch.id} />
+                  <input type="hidden" name="decision" value="pass" />
+                  <input type="hidden" name="group" value={activeGroup} />
+                  <button
+                    type="submit"
+                    disabled={hasSearchActive || !currentMatch}
+                    class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Pass
+                  </button>
+                </form>
+>>>>>>> matching-algorithm
               </div>
             </div>
           </div>
