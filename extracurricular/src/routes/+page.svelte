@@ -18,6 +18,7 @@
 	let searchResults = $state([]);
 	let hasSearchActive = $state(false);
 	let showFilterModal = $state(false);
+	let isSubmittingDecision = $state(false);
 
 	let selectedUniversity = $state('');
 	let selectedDegree = $state('');
@@ -163,23 +164,45 @@
 		showFilterModal = false;
 	}
 
-	function handleChoice() {
-		if (!currentMatch) return;
+	async function handleChoice(decision) {
+		if (!currentMatch || isSubmittingDecision) return;
 
-		if (hasSearchActive) {
-			searchIndex = searchIndex + 1;
-			return;
+		isSubmittingDecision = true;
+
+		const formData = new FormData();
+		formData.set('requestId', currentMatch.id);
+		formData.set('decision', decision);
+
+		try {
+			const response = await fetch('?/decide', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				showToast('Could not save your decision. Please try again.', 'error');
+				return;
+			}
+
+			if (hasSearchActive) {
+				searchIndex = searchIndex + 1;
+				return;
+			}
+
+			if (activeGroup === 'requests') {
+				requestIndex = requestIndex + 1;
+				return;
+			}
+
+			if (activeGroup === 'recommendations') {
+				recommendationIndex = recommendationIndex + 1;
+			}
+		} catch {
+			showToast('Could not save your decision. Please try again.', 'error');
+		} finally {
+			isSubmittingDecision = false;
 		}
-
-		if (activeGroup === 'requests') {
-			requestIndex = requestIndex + 1;
-			return;
-		}
-
-    if (activeGroup === 'recommendations') {
-      recommendationIndex = recommendationIndex + 1;
-    }
-  }
+	}
 
 </script>
 
@@ -458,8 +481,8 @@
               <div class="mt-8 grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onclick={handleChoice}
-                  disabled={!currentMatch}
+					onclick={() => handleChoice('fail')}
+					disabled={!currentMatch || isSubmittingDecision}
                   class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Fail
@@ -467,8 +490,8 @@
 
                 <button
                   type="button"
-                  onclick={handleChoice}
-                  disabled={!currentMatch}
+					onclick={() => handleChoice('pass')}
+					disabled={!currentMatch || isSubmittingDecision}
                   class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Pass
