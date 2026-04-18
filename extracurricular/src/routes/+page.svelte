@@ -26,6 +26,7 @@
   let maxAge = $state('');
   let sortBy = $state('none');
   let modalSearchInput = $state();
+  let showProfileDetail = $state(false);
 
   const hasAppliedFilters = $derived.by(() => Boolean(
     selectedUniversity ||
@@ -340,7 +341,11 @@
           <p class="text-gray-500 mt-2">Try clearing search or check back later for new recommendations.</p>
         </div>
       {:else}
-        <article class="rounded-3xl border border-gray-200 shadow-md overflow-hidden transition-colors" style={`background-color: ${currentUniversityTint};`}>
+        <article 
+        class="rounded-3xl border border-gray-200 shadow-md overflow-hidden transition-colors" 
+        style={`background-color: ${currentUniversityTint};`} 
+        onclick={() => showProfileDetail = true}
+        >
           <div class="flex flex-col md:flex-row">
             <div class="md:w-2/5 shrink-0">
               <img
@@ -414,3 +419,76 @@
     </section>
   </div>
 </main>
+
+{#if showProfileDetail && visibleMatch}
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40" 
+         role="dialog" 
+         aria-modal="true">
+        
+        <button class="absolute inset-0 cursor-default" onclick={() => showProfileDetail = false}></button>
+
+        <div class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <button 
+                onclick={() => showProfileDetail = false} 
+                class="absolute top-4 right-4 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-md transition-colors"
+            >
+                <span class="material-symbols-rounded">close</span>
+            </button>
+
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/2 h-64 md:h-auto">
+                    <img
+                        src={visibleMatch.imageUrl}
+                        alt={visibleMatch.name}
+                        class="h-full w-full object-cover"
+                    />
+                </div>
+
+                <div class="p-8 md:w-1/2">
+                    <div class="mb-6">
+                        <div class="flex items-baseline gap-3">
+                            <h2 class="text-3xl font-black text-gray-900">{visibleMatch.name}</h2>
+                            <span class="text-xl text-gray-500">{visibleMatch.age} ans</span>
+                        </div>
+                        <p class="text-blue-600 font-bold flex items-center gap-1 mt-1 text-sm">
+                            <span class="material-symbols-rounded text-base">school</span>
+                            {visibleMatch.university}
+                        </p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Course</p>
+                            <p class="text-gray-800 font-medium">{visibleMatch.course}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Interests</p>
+                            <div class="flex flex-wrap gap-2">
+                                {#each visibleMatch.interests as interest}
+                                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                                        {interest}
+                                    </span>
+                                {/each}
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 italic">Bio</p>
+                            <p class="text-sm leading-relaxed text-gray-600 whitespace-pre-wrap">
+                                {visibleMatch.bio || "No bio provided."}
+                            </p>
+                        </div>
+                    </div>
+
+                    <button 
+                        onclick={() => showProfileDetail = false}
+                        class="mt-8 w-full py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-colors"
+                    >
+                        Close Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}
