@@ -17,6 +17,11 @@
         return universityTintMap[currentMatch.university] ?? '#f8fafc';
     });
 
+    function getUniversityTint(profile) {
+        if (!profile?.university) return '#f8fafc';
+        return universityTintMap[profile.university] ?? '#f8fafc';
+    }
+
     const showPendingPanels = $derived.by(() => {
         return !hidePendingPanels || !!currentMatch;
     });
@@ -186,7 +191,10 @@
                                     </div>
 
                                     {#if expandedMatchId === match.id}
-                                        <div class="mt-4 rounded-xl border border-gray-200 bg-slate-50 p-4">
+                                        <div
+                                            class="mt-4 rounded-xl border border-gray-200 p-4"
+                                            style={`background-color: ${getUniversityTint(match)};`}
+                                        >
                                             <div class="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4">
                                                 <img
                                                     src={match.imageUrl}
