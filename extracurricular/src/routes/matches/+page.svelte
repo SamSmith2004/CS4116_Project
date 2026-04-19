@@ -163,12 +163,15 @@
                                         </div>
 
                                         <div class="flex items-center gap-2 shrink-0 md:flex-1 md:justify-end">
-                                            <a
-                                                href={`/messaging/${match.id}`}
-                                                class="rounded-lg px-3 py-2 text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-                                            >
-                                                Message
-                                            </a>
+                                            <form method="POST" action="?/startConversation">
+                                                <input type="hidden" name="matchId" value={match.id} />
+                                                <button
+                                                    type="submit"
+                                                    class="rounded-lg px-3 py-2 text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                                                >
+                                                    Message
+                                                </button>
+                                            </form>
 
                                             <form method="POST" action="?/unmatch">
                                                 <input type="hidden" name="matchId" value={match.id} />
