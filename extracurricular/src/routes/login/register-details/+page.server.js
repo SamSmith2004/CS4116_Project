@@ -35,11 +35,13 @@ export const actions = {
 			return fail(400, { message: 'Invalid email address' });
 		}
 
+		const normalizedEmail = normalizeEmail(email);
+
 		try {
 			const [blockedEmail] = await db
 				.select({ id: banned.id })
 				.from(banned)
-				.where(sql`lower(${banned.email}) = ${email}`)
+				.where(sql`lower(${banned.email}) = ${normalizedEmail}`)
 				.limit(1);
 
 			if (blockedEmail) {
@@ -111,4 +113,8 @@ const isAdult = (dob) => {
 const isValidEmail = (email) => {
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	return emailRegex.test(email);
+};
+
+const normalizeEmail = (email) => {
+	return email.trim().toLowerCase();
 };
