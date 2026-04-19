@@ -168,26 +168,62 @@ export const actions = {
         const formData = await request.formData();
         const targetUserId = formData.get('requestId')?.toString();
         const decision = formData.get('decision')?.toString();
-        const group = formData.get('group')?.toString();
 
         if (!targetUserId || targetUserId === sessionUser.id) {
             return fail(400, { message: 'Invalid target user.' });
         }
 
-        if (!['pass', 'fail'].includes(decision) || !['requests', 'recommendations'].includes(group)) {
-            return fail(400, { message: 'Invalid decision payload.' });
+        if (!['pass', 'fail'].includes(decision)) {
+            return fail(400, { message: 'Invalid decision.' });
         }
 
-        const nextStatus = group === 'requests'
-            ? decision === 'pass'
-                ? 'matched'
-                : 'unmatched'
-            : decision === 'pass'
-                ? 'pending'
-                : 'unmatched';
+        const pairRows = await db
+            .select({
+                matcher: matches.matcher,
+                matched: matches.matched,
+                status: matches.status
+            })
+            .from(matches)
+            .where(
+                or(
+                    and(eq(matches.matcher, sessionUser.id), eq(matches.matched, targetUserId)),
+                    and(eq(matches.matcher, targetUserId), eq(matches.matched, sessionUser.id))
+                )
+            );
 
-        const matcherId = group === 'requests' ? targetUserId : sessionUser.id;
-        const matchedId = group === 'requests' ? sessionUser.id : targetUserId;
+        const hasIncomingPendingRequest = pairRows.some((row) => {
+            const isPending = row.status === 'pending';
+            const isIncomingRequest = row.matcher === targetUserId && row.matched === sessionUser.id;
+            return isPending && isIncomingRequest;
+        });
+
+        const hasOutgoingPendingRequest = pairRows.some((row) => {
+            const isPending = row.status === 'pending';
+            const isOutgoingRequest = row.matcher === sessionUser.id && row.matched === targetUserId;
+            return isPending && isOutgoingRequest;
+        });
+
+        const hasUnmatchedRelationship = pairRows.some((row) => row.status === 'unmatched');
+
+        let nextStatus;
+        if (pairRows.length === 0) {
+            nextStatus = decision === 'pass' ? 'pending' : 'unmatched';
+        } else {
+            if (hasUnmatchedRelationship) {
+                return fail(409, { message: 'Cannot update an unmatched relationship.' });
+            }
+
+            if (hasIncomingPendingRequest) {
+                nextStatus = decision === 'pass' ? 'pending' : 'unmatched';
+            } else if (hasOutgoingPendingRequest) {
+                return fail(409, { message: 'Sender cannot update an outgoing pending relationship.' });
+            } else {
+                return fail(409, { message: 'Relationship cannot be updated in its current state.' });
+            }
+        }
+
+        const matcherId = sessionUser.id;
+        const matchedId = targetUserId;
 
         await db.transaction(async (tx) => {
             await tx
