@@ -28,7 +28,7 @@
 
 </script>
 
-<main class="min-h-[calc(100vh-3.5rem)] px-4 py-8 md:px-6 md:py-10 bg-gradient-to-b from-slate-50 to-white">
+<main class="min-h-[calc(100vh-3.5rem)] bg-transparent px-4 py-8 md:px-6 md:py-10">
     <div class="max-w-6xl mx-auto">
         <h1 class="text-center text-3xl font-bold text-gray-900">Matches</h1>
         <p class="text-center text-gray-600 mt-2 mb-8">Review people who have sent you match requests.</p>

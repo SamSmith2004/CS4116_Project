@@ -384,9 +384,7 @@
 	</div>
 {/if}
 
-<main
-	class="min-h-[calc(100vh-3.5rem)] bg-linear-to-b from-slate-50 to-white px-4 py-6 md:px-6 md:py-8"
->
+<main class="min-h-[calc(100vh-3.5rem)] bg-transparent px-4 py-6 md:px-6 md:py-8">
 	<div class="mx-auto max-w-5xl">
 		<section>
 			<div class="mb-5 flex flex-wrap items-center justify-between gap-3">

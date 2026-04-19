@@ -44,7 +44,7 @@
     }
 </script>
 
-<div class="flex flex-col min-h-screen bg-gray-50">
+<div class="flex flex-col min-h-screen">
     <header class="grid grid-cols-3 items-center bg-white py-4 px-8 shadow-sm border-b border-gray-200">
         <div></div>
         <h1 class="text-center text-2xl font-bold text-gray-800 tracking-widest uppercase">Admin Edit Profile</h1>
