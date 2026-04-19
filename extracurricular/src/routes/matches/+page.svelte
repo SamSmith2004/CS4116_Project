@@ -30,8 +30,10 @@
 
 <main class="min-h-[calc(100vh-3.5rem)] bg-transparent px-4 py-8 md:px-6 md:py-10">
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-center text-3xl font-bold text-gray-900">Matches</h1>
-        <p class="text-center text-gray-600 mt-2 mb-8">Review people who have sent you match requests.</p>
+        <div class="mb-8 rounded-3xl border border-gray-200/80 bg-white/75 px-6 py-5 text-center shadow-lg backdrop-blur-md">
+            <h1 class="text-3xl font-bold text-gray-900">Matches</h1>
+            <p class="mt-2 text-gray-700">Review people who have sent you match requests.</p>
+        </div>
 
         <div
             class={`grid grid-cols-1 gap-6 items-start ${showPendingPanels ? 'xl:grid-cols-[1fr_320px]' : 'xl:grid-cols-1'}`}

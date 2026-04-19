@@ -56,7 +56,8 @@
         </div>
     </header>
 
-    <main class="p-8 max-w-6xl mx-auto w-full">
+    <main class="p-4 md:p-8 max-w-6xl mx-auto w-full">
+        <div class="rounded-3xl border border-gray-200/80 bg-white/85 shadow-xl backdrop-blur-md p-6 md:p-8">
         <form id="profile-form" method="POST" action="?/updateProfile" enctype="multipart/form-data" use:enhance={handleSubmit}>
             <div class="flex flex-col md:flex-row gap-12">
                 <div class="w-full md:w-1/3 flex flex-col items-center">
@@ -170,5 +171,6 @@
                 </div>
             </div>
         </form>
+        </div>
     </main>
 </div>

@@ -387,10 +387,10 @@
 <main class="min-h-[calc(100vh-3.5rem)] bg-transparent px-4 py-6 md:px-6 md:py-8">
 	<div class="mx-auto max-w-5xl">
 		<section>
-			<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+			<div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-gray-200/80 bg-white/75 px-5 py-4 shadow-lg backdrop-blur-md">
 				<div>
 					<h1 class="text-3xl font-bold text-gray-900">Matching Process</h1>
-					<p class="mt-1 text-sm text-gray-600">
+					<p class="mt-1 text-sm text-gray-700">
 						Review profiles and pick who you want to connect with.
 					</p>
 				</div>
