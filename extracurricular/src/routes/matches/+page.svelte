@@ -143,7 +143,10 @@
                     {:else}
                         <ul class="mt-4 space-y-3">
                             {#each currentMatches as match (match.id)}
-                                <li class="rounded-xl border border-gray-200 p-3">
+                                <li
+                                    class="rounded-xl border border-gray-200 p-3"
+                                    style={`background-color: ${getUniversityTint(match)};`}
+                                >
                                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                         <div class="flex items-center gap-3 min-w-0 md:flex-1">
                                             <img
@@ -190,41 +193,6 @@
                                         </div>
                                     </div>
 
-                                    {#if expandedMatchId === match.id}
-                                        <div
-                                            class="mt-4 rounded-xl border border-gray-200 p-4"
-                                            style={`background-color: ${getUniversityTint(match)};`}
-                                        >
-                                            <div class="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4">
-                                                <img
-                                                    src={match.imageUrl}
-                                                    alt={`Profile picture of ${match.name}`}
-                                                    class="w-full h-28 md:h-full rounded-lg object-cover border border-gray-200"
-                                                />
-
-                                                <div>
-                                                    <h4 class="text-lg font-semibold text-gray-900">{match.name}</h4>
-                                                    <p class="text-sm text-gray-600 mt-1">{match.bio}</p>
-
-                                                    <div class="mt-3 flex flex-wrap gap-2">
-                                                        {#each match.interests ?? [] as interest}
-                                                            <span class="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700">
-                                                                {interest}
-                                                            </span>
-                                                        {/each}
-                                                    </div>
-
-                                                    {#if match.profileDetails}
-                                                        <div class="mt-4 space-y-2 text-sm text-gray-700">
-                                                            <p><span class="font-semibold">Ideal weekend:</span> {match.profileDetails.idealWeekend}</p>
-                                                            <p><span class="font-semibold">Looking for:</span> {match.profileDetails.lookingFor}</p>
-                                                            <p><span class="font-semibold">Societies:</span> {(match.profileDetails.societies ?? []).join(', ')}</p>
-                                                        </div>
-                                                    {/if}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {/if}
                                 </li>
                             {/each}
                         </ul>
