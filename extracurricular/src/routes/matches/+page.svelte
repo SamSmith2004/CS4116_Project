@@ -4,7 +4,6 @@
     const currentMatches = $derived.by(() => data.currentMatches ?? []);
     const decisionHistory = $derived.by(() => data.decisionHistory ?? []);
     let hidePendingPanels = $state(false);
-    let expandedMatchId = $state(null);
 
     const currentMatch = $derived.by(() => {
         return requests[0] ?? null;
@@ -153,13 +152,12 @@
                                         </div>
 
                                         <div class="md:flex-1 flex justify-center">
-                                            <button
-                                                type="button"
-                                                onclick={() => (expandedMatchId = expandedMatchId === match.id ? null : match.id)}
+                                            <a
+                                                href={`/profile/view/${match.id}`}
                                                 class="rounded-lg px-3 py-2 text-sm font-semibold bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 transition-colors"
                                             >
-                                                {expandedMatchId === match.id ? 'Hide Details' : 'View More'}
-                                            </button>
+                                                View Profile
+                                            </a>
                                         </div>
 
                                         <div class="flex items-center gap-2 shrink-0 md:flex-1 md:justify-end">
@@ -182,38 +180,6 @@
                                         </div>
                                     </div>
 
-                                    {#if expandedMatchId === match.id}
-                                        <div class="mt-4 rounded-xl border border-gray-200 bg-slate-50 p-4">
-                                            <div class="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4">
-                                                <img
-                                                    src={match.imageUrl}
-                                                    alt={`Profile picture of ${match.name}`}
-                                                    class="w-full h-28 md:h-full rounded-lg object-cover border border-gray-200"
-                                                />
-
-                                                <div>
-                                                    <h4 class="text-lg font-semibold text-gray-900">{match.name}</h4>
-                                                    <p class="text-sm text-gray-600 mt-1">{match.bio}</p>
-
-                                                    <div class="mt-3 flex flex-wrap gap-2">
-                                                        {#each match.interests ?? [] as interest}
-                                                            <span class="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700">
-                                                                {interest}
-                                                            </span>
-                                                        {/each}
-                                                    </div>
-
-                                                    {#if match.profileDetails}
-                                                        <div class="mt-4 space-y-2 text-sm text-gray-700">
-                                                            <p><span class="font-semibold">Ideal weekend:</span> {match.profileDetails.idealWeekend}</p>
-                                                            <p><span class="font-semibold">Looking for:</span> {match.profileDetails.lookingFor}</p>
-                                                            <p><span class="font-semibold">Societies:</span> {(match.profileDetails.societies ?? []).join(', ')}</p>
-                                                        </div>
-                                                    {/if}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {/if}
                                 </li>
                             {/each}
                         </ul>
