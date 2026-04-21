@@ -7,6 +7,11 @@
 
 	let { children } = $props();
 	let mobileMenuOpen = $state(false);
+	let isLoginRoute = $derived(
+		page.url.pathname === '/login' || page.url.pathname === '/login/register-details'
+	);
+	let isEventsRoute = $derived(page.url.pathname === '/events');
+	let showBackground = $derived(!isLoginRoute && !isEventsRoute);
 </script>
 
 <svelte:head>
@@ -18,7 +23,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen">
-	{#if page.url.pathname !== "/login" && page.url.pathname !== "/login/register-details"}
+	{#if !isLoginRoute}
 		<div class="hidden md:block">
 			<Navbar />
 		</div>
@@ -55,7 +60,13 @@
 		<!-- end -->
 	{/if}
 
-	<main class="{page.url.pathname !== '/login' && page.url.pathname !== "/login/register-details" ? 'md:ml-16' : ''} flex-1 w-full">
+	<main
+		class="{showBackground
+			? 'md:ml-16 bg-[url(/images/background.png)] bg-cover bg-center bg-no-repeat'
+			: !isLoginRoute
+				? 'md:ml-16'
+				: ''} flex-1 w-full"
+	>
 		{@render children()}
 	</main>
 </div>

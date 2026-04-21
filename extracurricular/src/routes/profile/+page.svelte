@@ -64,7 +64,7 @@
     });
 </script>
 
-<div class="flex flex-col min-h-screen bg-gray-50">
+<div class="flex flex-col min-h-screen">
     <header class="grid grid-cols-3 items-center bg-white py-4 px-8 shadow-sm border-b border-gray-200">
         <div></div>
         <h1 class="text-center text-2xl font-bold text-gray-800 tracking-widest uppercase">Edit Profile</h1>
@@ -84,7 +84,8 @@
         </div>
     </header>
 
-    <main class="p-8 max-w-6xl mx-auto w-full">
+    <main class="p-4 md:p-8 max-w-6xl mx-auto w-full">
+        <div class="rounded-3xl border border-gray-200/80 bg-white/85 shadow-xl backdrop-blur-md p-6 md:p-8">
         <form id="profile-form" method="POST" action="?/updateProfile" enctype="multipart/form-data" use:enhance={handleSubmit}>
             {#if isEditing}
             <div class="flex flex-col md:flex-row gap-12">
@@ -234,5 +235,6 @@
                 <ProfileReadonlyCard profile={previewProfile} />
             {/if}
         </form>
+        </div>
     </main>
 </div>

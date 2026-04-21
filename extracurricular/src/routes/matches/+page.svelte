@@ -16,16 +16,23 @@
         return universityTintMap[currentMatch.university] ?? '#f8fafc';
     });
 
+    function getUniversityTint(profile) {
+        if (!profile?.university) return '#f8fafc';
+        return universityTintMap[profile.university] ?? '#f8fafc';
+    }
+
     const showPendingPanels = $derived.by(() => {
         return !hidePendingPanels || !!currentMatch;
     });
 
 </script>
 
-<main class="min-h-[calc(100vh-3.5rem)] px-4 py-8 md:px-6 md:py-10 bg-gradient-to-b from-slate-50 to-white">
+<main class="min-h-[calc(100vh-3.5rem)] bg-transparent px-4 py-8 md:px-6 md:py-10">
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-center text-3xl font-bold text-gray-900">Matches</h1>
-        <p class="text-center text-gray-600 mt-2 mb-8">Review people who have sent you match requests.</p>
+        <div class="mb-8 rounded-3xl border border-gray-200/80 bg-white/75 px-6 py-5 text-center shadow-lg backdrop-blur-md">
+            <h1 class="text-3xl font-bold text-gray-900">Matches</h1>
+            <p class="mt-2 text-gray-700">Review people who have sent you match requests.</p>
+        </div>
 
         <div
             class={`grid grid-cols-1 gap-6 items-start ${showPendingPanels ? 'xl:grid-cols-[1fr_320px]' : 'xl:grid-cols-1'}`}
@@ -161,12 +168,15 @@
                                         </div>
 
                                         <div class="flex items-center gap-2 shrink-0 md:flex-1 md:justify-end">
-                                            <a
-                                                href={`/messaging/${match.id}`}
-                                                class="rounded-lg px-3 py-2 text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-                                            >
-                                                Message
-                                            </a>
+                                            <form method="POST" action="?/startConversation">
+                                                <input type="hidden" name="matchId" value={match.id} />
+                                                <button
+                                                    type="submit"
+                                                    class="rounded-lg px-3 py-2 text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                                                >
+                                                    Message
+                                                </button>
+                                            </form>
 
                                             <form method="POST" action="?/unmatch">
                                                 <input type="hidden" name="matchId" value={match.id} />
@@ -180,6 +190,41 @@
                                         </div>
                                     </div>
 
+                                    {#if expandedMatchId === match.id}
+                                        <div
+                                            class="mt-4 rounded-xl border border-gray-200 p-4"
+                                            style={`background-color: ${getUniversityTint(match)};`}
+                                        >
+                                            <div class="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4">
+                                                <img
+                                                    src={match.imageUrl}
+                                                    alt={`Profile picture of ${match.name}`}
+                                                    class="w-full h-28 md:h-full rounded-lg object-cover border border-gray-200"
+                                                />
+
+                                                <div>
+                                                    <h4 class="text-lg font-semibold text-gray-900">{match.name}</h4>
+                                                    <p class="text-sm text-gray-600 mt-1">{match.bio}</p>
+
+                                                    <div class="mt-3 flex flex-wrap gap-2">
+                                                        {#each match.interests ?? [] as interest}
+                                                            <span class="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700">
+                                                                {interest}
+                                                            </span>
+                                                        {/each}
+                                                    </div>
+
+                                                    {#if match.profileDetails}
+                                                        <div class="mt-4 space-y-2 text-sm text-gray-700">
+                                                            <p><span class="font-semibold">Ideal weekend:</span> {match.profileDetails.idealWeekend}</p>
+                                                            <p><span class="font-semibold">Looking for:</span> {match.profileDetails.lookingFor}</p>
+                                                            <p><span class="font-semibold">Societies:</span> {(match.profileDetails.societies ?? []).join(', ')}</p>
+                                                        </div>
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {/if}
                                 </li>
                             {/each}
                         </ul>

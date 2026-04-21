@@ -2,7 +2,8 @@ import { fail, redirect } from '@sveltejs/kit';
 import { auth } from '$lib/server/auth';
 import { APIError } from 'better-auth/api';
 import { db } from '$lib/server/db';
-import { userDetails, interests, universityEnum, degreeEnum, interestEnum } from '$lib/server/db/schema';
+import { userDetails, interests, universityEnum, degreeEnum, interestEnum, banned } from '$lib/server/db/schema';
+import { sql } from 'drizzle-orm';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load(event) {
@@ -34,6 +35,22 @@ export const actions = {
 			return fail(400, { message: 'Invalid email address' });
 		}
 
+		const normalizedEmail = normalizeEmail(email);
+
+		try {
+			const [blockedEmail] = await db
+				.select({ id: banned.id })
+				.from(banned)
+				.where(sql`lower(${banned.email}) = ${normalizedEmail}`)
+				.limit(1);
+
+			if (blockedEmail) {
+				return fail(403, { message: 'This email is banned and cannot register.' });
+			}
+		} catch (e) {
+			return fail(500, { message: 'Unexpected error' });
+		}
+
 		if (!isAdult(dob)) {
 			return fail(400, { message: 'You must be 18 or older to register' });
 		}
@@ -41,7 +58,7 @@ export const actions = {
 		try {
 			const res = await auth.api.signUpEmail({
 				body: {
-					email,
+					email: normalizedEmail,
 					password,
 					name: `${fname} ${lname}`,
 					fname,
@@ -96,4 +113,8 @@ const isAdult = (dob) => {
 const isValidEmail = (email) => {
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	return emailRegex.test(email);
+};
+
+const normalizeEmail = (email) => {
+	return email.trim().toLowerCase();
 };
