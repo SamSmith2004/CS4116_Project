@@ -19,6 +19,7 @@ export const actions = {
 		const formData = await event.request.formData();
 		const email = formData.get('email');
 		const password = formData.get('password');
+		const confirmPassword = formData.get('confirmPassword');
 		const dob = formData.get('dob');
 		const fname = formData.get('fname');
 		const lname = formData.get('lname');
@@ -27,8 +28,12 @@ export const actions = {
 		const gender = formData.get('gender');
 		const partnerPref = formData.get('partnerPref');
 
-		if (!email || !password || !dob || !fname || !lname || !uni || !degree || !gender || !partnerPref) {
+		if (!email || !password || !confirmPassword || !dob || !fname || !lname || !uni || !degree || !gender || !partnerPref) {
 			return fail(400, { message: 'All fields are required' });
+		}
+
+		if (password !== confirmPassword) {
+			return fail(400, { message: 'Passwords do not match' });
 		}
 
 		if (!isValidEmail(email)) {
