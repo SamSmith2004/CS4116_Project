@@ -444,39 +444,40 @@
 									<span class="text-xl text-gray-500">{visibleMatch.age}</span>
 								</div>
 
-								<dl class="mt-5 space-y-4 text-gray-700">
-									<div>
-										<dt class="text-xs tracking-widest text-gray-400 uppercase">University</dt>
-										<dd class="mt-0.5 text-base font-medium text-gray-900">
-											{visibleMatch.university}
-										</dd>
-									</div>
-									<div>
-										<dt class="text-xs tracking-widest text-gray-400 uppercase">Course</dt>
-										<dd class="mt-0.5 text-base font-medium text-gray-900">
-											{visibleMatch.course}
-										</dd>
-									</div>
-									<div>
-										<dt class="mb-2 text-xs tracking-widest text-gray-400 uppercase">Interests</dt>
-										<dd class="flex flex-wrap gap-2">
-											{#each visibleMatch.interests.slice(0, 3) as interest}
-												<span
-													class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700"
-													>{interest}</span
-												>
-											{/each}
-										</dd>
-									</div>
-								</dl>
+                <dl class="mt-5 space-y-4 text-gray-700">
+                  <div>
+                    <dt class="text-xs uppercase tracking-widest text-gray-400">University</dt>
+                    <dd class="text-base font-medium text-gray-900 mt-0.5">{visibleMatch.university}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-widest text-gray-400">Course</dt>
+                    <dd class="text-base font-medium text-gray-900 mt-0.5">{visibleMatch.course}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-widest text-gray-400 mb-2">Interests</dt>
+                    <dd class="flex flex-wrap gap-2">
+                      {#each visibleMatch.interests.slice(0, 3) as interest}
+                        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-medium">{interest}</span>
+                      {/each}
 
-								<div class="mt-5">
-									<p class="text-xs tracking-widest text-gray-400 uppercase">Bio</p>
-									<p class="mt-1 text-sm leading-relaxed text-gray-600">{visibleMatch.bio}</p>
-								</div>
-							</div>
+                      {#if visibleMatch.interests.length > 3}
+                        <span class="px-3 py-1 rounded-full bg-slate-200 text-slate-700 text-sm font-semibold">
+                          +{visibleMatch.interests.length - 3} more
+                        </span>
+                      {/if}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
 
               <div class="mt-8 grid grid-cols-2 gap-4">
+                <a
+                  href={`/profile/view/${visibleMatch.id}`}
+                  class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-blue-200 bg-blue-50 px-5 py-4 text-lg font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+                >
+                  View Profile
+                </a>
+
                 <button
                   type="button"
 					onclick={() => handleChoice('fail')}
