@@ -7,6 +7,9 @@
     let allInterests = $derived(data.allInterests || []);
     let interests = $state([]);
     let emailInvalid = $state(false);
+    let passwordValue = $state('');
+    let confirmPasswordValue = $state('');
+    let passwordMismatch = $state(false);
     let allUniversities = $derived(data.allUniversities || []);
     let allDegrees = $derived(data.allDegrees || []);
 
@@ -21,6 +24,10 @@
     function validateEmail(value) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         emailInvalid = value.length > 0 && !emailRegex.test(value);
+    }
+
+    function validatePasswords() {
+        passwordMismatch = confirmPasswordValue.length > 0 && passwordValue !== confirmPasswordValue;
     }
 </script>
 
@@ -37,6 +44,9 @@
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
             <form method="post" action='?/signUpEmail' use:enhance class="space-y-4">
+                <p class="text-xs text-center text-slate-500">
+                    All fields are mandatory.
+                </p>
 
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
@@ -69,8 +79,38 @@
                         required
                         minlength="8"
                         placeholder="••••••••"
+                        oninput={(e) => {
+                            passwordValue = e.target.value;
+                            validatePasswords();
+                        }}
                         class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
                     />
+                </div>
+
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        required
+                        minlength="8"
+                        placeholder="••••••••"
+                        oninput={(e) => {
+                            confirmPasswordValue = e.target.value;
+                            validatePasswords();
+                        }}
+                        class="w-full px-3 py-2.5 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 outline-none transition-all text-sm
+                            {passwordMismatch
+                                ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                                : 'border-gray-200 focus:border-blue-400 focus:ring-blue-100'}"
+                    />
+                    {#if passwordMismatch}
+                        <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                            <span class="material-symbols-rounded text-[14px]">error</span>
+                            Passwords do not match
+                        </p>
+                    {/if}
                 </div>
 
                 <div>
@@ -82,6 +122,7 @@
                         required
                         class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
                     />
+                    <p class="text-xs text-gray-500 mt-1">You must be 18 or older to register.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
