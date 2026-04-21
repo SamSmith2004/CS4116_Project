@@ -65,22 +65,24 @@
 </script>
 
 <div class="flex flex-col min-h-screen">
-    <header class="grid grid-cols-3 items-center bg-white py-4 px-8 shadow-sm border-b border-gray-200">
-        <div></div>
+    <header class="border-b border-gray-200 bg-white px-4 py-4 shadow-sm md:px-8">
+        <div class="flex flex-col gap-3 md:grid md:grid-cols-3 md:items-center">
+        <div class="hidden md:block"></div>
         <h1 class="text-center text-2xl font-bold text-gray-800 tracking-widest uppercase">Edit Profile</h1>
-        <div class="flex justify-end gap-3">
+        <div class="flex flex-wrap justify-center gap-2 md:justify-end md:gap-3">
         {#if !isEditing}
-            <button onclick={() => isEditing = true} class="bg-gray-100 text-gray-700 px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
+            <button onclick={() => isEditing = true} class="rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 md:px-6">
                 Modify
             </button>
         {:else}
-            <button onclick={() => isEditing = false} class="text-gray-500 px-4 py-2 text-sm font-medium">
+            <button onclick={() => isEditing = false} class="px-4 py-2 text-sm font-medium text-gray-500">
                 Cancel
             </button>
-            <button form="profile-form" class="bg-[#0C00BF] text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-blue-800 transition-colors">
+            <button form="profile-form" class="rounded-full bg-[#0C00BF] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800 md:px-6">
                 Save
             </button>
         {/if}
+        </div>
         </div>
     </header>
 

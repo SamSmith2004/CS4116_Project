@@ -56,9 +56,10 @@
     }
 </script>
 
-<div class="flex min-h-screen flex-col bg-gray-50">
-    <header class="grid grid-cols-3 items-center border-b border-gray-200 bg-white px-8 py-4 shadow-sm">
-        <div>
+<div class="flex min-h-screen flex-col">
+    <header class="border-b border-gray-200 bg-white px-4 py-4 shadow-sm md:px-8">
+        <div class="flex flex-col gap-3 md:grid md:grid-cols-3 md:items-center">
+        <div class="flex justify-start">
             <button
                 type="button"
                 onclick={goBack}
@@ -69,7 +70,7 @@
             </button>
         </div>
         <h1 class="text-center text-2xl font-bold uppercase tracking-widest text-gray-800">Profile</h1>
-        <div class="flex justify-end">
+        <div class="flex justify-center md:justify-end">
             <button
                 type="button"
                 class="inline-flex items-center gap-1 rounded-full bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
@@ -79,12 +80,15 @@
                 Report
             </button>
         </div>
+        </div>
     </header>
 
     <Toast />
 
-    <main class="mx-auto w-full max-w-6xl p-8">
-        <ProfileReadonlyCard {profile} />
+    <main class="mx-auto w-full max-w-6xl p-4 md:p-8">
+        <div class="rounded-3xl border border-gray-200/80 bg-white/85 p-6 shadow-xl backdrop-blur-md md:p-8">
+            <ProfileReadonlyCard {profile} />
+        </div>
     </main>
 
     {#if showReportModal}
