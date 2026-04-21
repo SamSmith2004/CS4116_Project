@@ -1,5 +1,6 @@
 <script>
     import { enhance } from '$app/forms';
+    import ProfileReadonlyCard from '$lib/components/ProfileReadonlyCard.svelte';
     import { showToast } from '$lib/toast.svelte.js';
     let { data } = $props();
 
@@ -49,6 +50,18 @@
         const diff = Date.now() - new Date(dob).getTime();
         return Math.abs(new Date(diff).getUTCFullYear() - 1970);
     }
+
+    const previewProfile = $derived({
+        name: `${profile.fname || ''} ${profile.lname || ''}`.trim() || data.user?.name || 'Unknown User',
+        age: calculateAge(data.user?.dob),
+        university: profile.university,
+        degree: profile.degree,
+        bio: profile.bio,
+        avatarUrl: avatarPreview,
+        gender: profile.gender,
+        partnerPref: profile.partnerPref,
+        interests: profile.selectedInterests
+    });
 </script>
 
 <div class="flex flex-col min-h-screen bg-gray-50">
@@ -73,6 +86,7 @@
 
     <main class="p-8 max-w-6xl mx-auto w-full">
         <form id="profile-form" method="POST" action="?/updateProfile" enctype="multipart/form-data" use:enhance={handleSubmit}>
+            {#if isEditing}
             <div class="flex flex-col md:flex-row gap-12">
 
                 <div class="w-full md:w-1/3 flex flex-col items-center">
@@ -216,6 +230,9 @@
                     </div>
                 </div>
             </div>
+            {:else}
+                <ProfileReadonlyCard profile={previewProfile} />
+            {/if}
         </form>
     </main>
 </div>
