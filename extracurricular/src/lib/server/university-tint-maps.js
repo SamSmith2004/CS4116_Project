@@ -8,5 +8,5 @@ export const universityTintMap = {
 	'Maynooth University': '#f5f0ff',
 	'Munster Technological University': '#e8f6f3',
 	'Technological University Dublin': '#e6f4ff',
-	'Royal College of Surgeons in Ireland': '#e8f6ee',
+	'Royal College of Surgeons in Ireland': '#e8f6ee'
 };
