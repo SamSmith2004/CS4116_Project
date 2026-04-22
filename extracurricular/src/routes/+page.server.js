@@ -2,6 +2,7 @@ import { db } from '$lib/server/db';
 import { fail } from '@sveltejs/kit';
 import { user, userDetails, interests, matches, universityEnum, degreeEnum, interestEnum } from '$lib/server/db/schema';
 import { and, eq, or } from 'drizzle-orm';
+import { universityTintMap } from '$lib/server/university-tint-maps';
 import calculateAge from '$lib/utils/age.js';
 
 const UNIVERISTY_WEIGHT = 5;
@@ -16,16 +17,6 @@ function buildName(profile) {
     if (profile.name?.trim()) return profile.name.trim();
     return profile.email?.split('@')[0] ?? 'Unknown User';
 }
-
-const universityTintMap = {
-    'University of Limerick': '#e6ffe6',
-    'University College Cork': '#fff3e6',
-    'NUI Galway': '#f2ecff',
-    'University of Galway': '#f2ecff',
-    'Dublin Institute of Technology': '#e6f4ff',
-    'Maynooth University': '#f5f0ff',
-    'Trinity College Dublin': '#e8f4ff'
-};
 
 function isOrientationAligned(partnerPref, otherGender) {
     if (partnerPref === 'both') return true;

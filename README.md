@@ -4,9 +4,9 @@ Extracurricular is a dating website for university students
 
 ## Contributors
 - 23388986: Sam Smith
-- : Leo Brady
-- : Ilias Kourousis
-- : Nicholas Frantz
+- 23327987: Leo Brady
+- 23361077: Ilias Kourousis
+- 25510126: Nicholas Frantz
 
 ## Local Setup
 - Install Node JS 
