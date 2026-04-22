@@ -13,6 +13,17 @@
     let allUniversities = $derived(data.allUniversities || []);
     let allDegrees = $derived(data.allDegrees || []);
 
+    const formatDateForInput = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const defaultDobDate = new Date();
+    defaultDobDate.setFullYear(defaultDobDate.getFullYear() - 18);
+    const defaultDob = formatDateForInput(defaultDobDate);
+
     function toggleInterest(interest) {
         if (interests.includes(interest)) {
             interests = interests.filter((i) => i !== interest);
@@ -120,6 +131,7 @@
                         id="dob"
                         name="dob"
                         required
+                        value={defaultDob}
                         class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
                     />
                     <p class="text-xs text-gray-500 mt-1">You must be 18 or older to register.</p>
