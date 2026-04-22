@@ -1,3 +1,4 @@
+// Old unused mock account data for matches and recommendations. Kept here for reference
 export const requests = [
     {
         id: 101,
