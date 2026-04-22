@@ -37,7 +37,18 @@ export const degreeEnum = pgEnum('degree', [
 	'Medical',
 	'Psychology',
 	'Politcal Science',
-	'Engineering'
+	'Engineering',
+	'Biology',
+	'Geography',
+	'Accounting',
+	'Nursing',
+	'Law',
+	'Arts',
+	'Languages',
+	'Education',
+	'Social Science',
+	'Media',
+	'Architecture'
 ]);
 
 export const interestEnum = pgEnum('interest', [
@@ -50,7 +61,18 @@ export const interestEnum = pgEnum('interest', [
 	'Sport',
 	'Swimming',
 	'Fishing',
-	'Computers'
+	'Computers',
+	'Travel',
+	'Cooking',
+	'Art',
+	'Photography',
+	'Fitness',
+	'Dancing',
+	'Volunteering',
+	'Nature',
+	'Pets',
+	'Board Games',
+	'Writing'
 ]);
 
 export const partnerPrefEnum = pgEnum('partner_pref', ['male', 'female', 'both']);
