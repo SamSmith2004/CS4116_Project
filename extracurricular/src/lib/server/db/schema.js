@@ -20,7 +20,10 @@ export const universityEnum = pgEnum('university', [
 	'Dublin City University',
 	'University College Dublin',
 	'University of Galway',
-	'Maynooth University'
+	'Maynooth University',
+	'Munster Technological University',
+	'Technological University Dublin',
+	'Royal College of Surgeons in Ireland',
 ]);
 
 export const degreeEnum = pgEnum('degree', [

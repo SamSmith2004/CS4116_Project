@@ -1,9 +1,12 @@
 export const universityTintMap = {
 	'University of Limerick': '#e6ffe6',
 	'University College Cork': '#fff3e6',
-	'NUI Galway': '#f2ecff',
+	'Trinity College Dublin': '#e8f4ff',
+	'Dublin City University': '#eaf2fb',
+	'University College Dublin': '#e8f1f9',
 	'University of Galway': '#f2ecff',
-	'Dublin Institute of Technology': '#e6f4ff',
 	'Maynooth University': '#f5f0ff',
-	'Trinity College Dublin': '#e8f4ff'
+	'Munster Technological University': '#e8f6f3',
+	'Technological University Dublin': '#e6f4ff',
+	'Royal College of Surgeons in Ireland': '#e8f6ee',
 };
