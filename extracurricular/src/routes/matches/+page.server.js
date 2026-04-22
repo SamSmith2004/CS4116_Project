@@ -4,7 +4,7 @@ import { and, eq, or } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { convos, matches } from '$lib/server/db/schema';
 import { getMatchPageFeed } from '$lib/server/matching';
-import { universityTintMap } from '$lib/server/mock-matches';
+import { universityTintMap } from '$lib/server/university-tint-maps';
 
 export const load = async ({ locals }) => {
     const sessionUser = locals.user;
