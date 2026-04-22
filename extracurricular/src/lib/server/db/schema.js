@@ -36,7 +36,7 @@ export const degreeEnum = pgEnum('degree', [
 	'Business',
 	'Medical',
 	'Psychology',
-	'Politcal Science',
+	'Politcal Science',//Should be "Political Science". DB update prompted 'DROP TYPE' so left alone out of fear
 	'Engineering',
 	'Biology',
 	'Geography',
