@@ -19,8 +19,14 @@ import { redirect } from "@sveltejs/kit";
     }
 
 	if (session) {
-		event.locals.session = session.session;
-		event.locals.user = session.user;
+		if (session.user?.isBanned) {
+			if (!isPublicRoute) {
+				redirect(303, '/login');
+			}
+		} else {
+			event.locals.session = session.session;
+			event.locals.user = session.user;
+		}
 	}
 
 	return svelteKitHandler({ event, resolve, auth, building });

@@ -1,6 +1,7 @@
 <script>
     import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { showToast } from '$lib/toast.svelte.js';
 
     let { form } = $props();
     let emailInvalid = $state(false);
@@ -9,6 +10,16 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         emailInvalid = value.length > 0 && !emailRegex.test(value);
     }
+
+	function handleSignInEnhance() {
+		return async ({ result, update }) => {
+			if (result.type === 'failure' && result.status === 403 && result.data?.banned) {
+				showToast(result.data.message || 'Your account has been banned.', 'error');
+			}
+
+			await update();
+		};
+	}
 </script>
 
 <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4 lg:p-6">
@@ -32,7 +43,7 @@
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-            <form method="post" action="?/signInEmail" use:enhance class="space-y-4">
+            <form method="post" action="?/signInEmail" use:enhance={handleSignInEnhance} class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
                         Email Address

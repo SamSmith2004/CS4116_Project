@@ -69,8 +69,9 @@
                                 type="button"
                                 class="text-sm px-3 py-1 rounded-md border border-gray-200"
                                 onclick={() => openBanModal({ userId: user.userId, name: user.name, email: user.email })}
+                                disabled={user.banned}
                             >
-                                Ban
+                                {user.banned ? 'Banned' : 'Ban'}
                             </button>
                             <button
                                 type="button"
@@ -107,8 +108,9 @@
                             type="button"
                             class="text-sm px-3 py-1 rounded-md border border-gray-200"
                             onclick={() => openBanModal({ userId: user.userId, name: user.name, email: user.email })}
+                            disabled={user.banned}
                         >
-                            Ban
+                            {user.banned ? 'Banned' : 'Ban'}
                         </button>
                         <button
                             type="button"
@@ -142,6 +144,13 @@
                         </div>
                     </div>
 
+                    <form method="POST" action="?/unbanUser" class="ml-4">
+                        <input type="hidden" name="userId" value={user.id} />
+                        <button type="submit" class="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-sm text-green-700 hover:bg-green-100">
+                            Unban
+                        </button>
+                    </form>
+
                 </div>
             {/each}
         </div>
@@ -167,7 +176,7 @@
                 Are you sure you want to permanently ban <span class="font-semibold text-gray-900">{selectedUser.name}</span>?
             </p>
             <p class="mt-1 text-sm text-gray-600">
-                This will delete their account and add <span class="font-semibold text-gray-900">{selectedUser.email ?? 'their email'}</span> to the ban list.
+                This will mark their account as banned and block access until they are unbanned.
             </p>
 
             <form method="POST" action="?/banUser" class="mt-5 flex items-center justify-end gap-2">

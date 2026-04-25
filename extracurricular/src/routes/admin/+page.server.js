@@ -1,14 +1,10 @@
 import { db } from '$lib/server/db';
 import { desc, eq } from 'drizzle-orm';
 import { user } from '$lib/server/db/auth.schema';
-import { banned, reports, userDetails } from '$lib/server/db/schema';
+import { reports, userDetails } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin';
 import { formatIsoDate } from '$lib/utils/date';
 import { fail } from '@sveltejs/kit';
-import { rm } from 'node:fs/promises';
-import path from 'node:path';
-
-const UPLOADS_DIR = '/app/uploads/';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals }) {
@@ -23,7 +19,8 @@ export async function load({ locals }) {
             reportedUserId: reports.reportedUserId,
             avatarUrl: userDetails.avatarUrl,
             name: user.name,
-            email: user.email
+            email: user.email,
+            isBanned: user.isBanned
         })
         .from(reports)
         .leftJoin(user, eq(user.id, reports.reportedUserId))
@@ -56,18 +53,19 @@ export async function load({ locals }) {
         reportedAt: formatIsoDate(row.reportedAt),
         isMessageReport: hasMessageReportByUser.get(row.reportedUserId) ?? false,
         avatarUrl: row.avatarUrl || null,
-        banned: false
+        banned: row.isBanned ?? false
     }));
 
     const bannedRows = await db
         .select({
-            banId: banned.id,
-            email: banned.email
+            userId: user.id,
+            email: user.email
         })
-        .from(banned)
+        .from(user)
+        .where(eq(user.isBanned, true));
 
     const bannedUsers = bannedRows.map((row) => ({
-        id: row.banId,
+        id: row.userId,
         email: row.email,
         banned: true
     }));
@@ -112,32 +110,64 @@ export const actions = {
         const [existingUser] = await db
             .select({
                 id: user.id,
-                email: user.email
+                isBanned: user.isBanned
             })
             .from(user)
             .where(eq(user.id, userId));
 
-        if (!existingUser?.email) {
+        if (!existingUser?.id) {
             return fail(404, { message: 'User not found' });
         }
 
+        if (existingUser.isBanned) {
+            return fail(400, { message: 'User is already banned' });
+        }
+
         try {
-            const avatarDir = path.join(UPLOADS_DIR, userId, 'avatar');
-            await rm(avatarDir, { recursive: true, force: true });
-
             await db.transaction(async (tx) => {
-                await tx
-                    .insert(banned)
-                    .values({ email: existingUser.email })
-                    .onConflictDoNothing();
-
-                await tx.delete(user).where(eq(user.id, userId));
+                await tx.update(user).set({ isBanned: true }).where(eq(user.id, userId));
+                await tx.delete(reports).where(eq(reports.reportedUserId, userId));
             });
 
             return { success: true };
         } catch (error) {
             console.error('Failed to ban user', error);
             return fail(500, { message: 'Failed to ban user' });
+        }
+    },
+
+    unbanUser: async ({ locals, request }) => {
+        await requireAdmin(locals);
+
+        const formData = await request.formData();
+        const userId = formData.get('userId')?.toString();
+
+        if (!userId) {
+            return fail(400, { message: 'User id is required' });
+        }
+
+        const [existingUser] = await db
+            .select({
+                id: user.id,
+                isBanned: user.isBanned
+            })
+            .from(user)
+            .where(eq(user.id, userId));
+
+        if (!existingUser?.id) {
+            return fail(404, { message: 'User not found' });
+        }
+
+        if (!existingUser.isBanned) {
+            return fail(400, { message: 'User is not banned' });
+        }
+
+        try {
+            await db.update(user).set({ isBanned: false }).where(eq(user.id, userId));
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to unban user', error);
+            return fail(500, { message: 'Failed to unban user' });
         }
     }
 };
