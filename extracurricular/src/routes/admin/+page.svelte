@@ -8,6 +8,8 @@
     const banned = $derived.by(() => data.banned ?? []);
     let selectedUser = $state(null);
     let selectedReportTarget = $state(null);
+    let selectedReason = $state(null);
+    const MAX_REASON_PREVIEW = 30;
 
     function handleSearch() {
         // TODO
@@ -27,6 +29,23 @@
 
     function closeDeleteReportModal() {
         selectedReportTarget = null;
+    }
+
+    function isLongReason(reason) {
+        return Boolean(reason) && reason.length > MAX_REASON_PREVIEW;
+    }
+
+    function reasonPreview(reason) {
+        if (!reason) return '';
+        return isLongReason(reason) ? `${reason.slice(0, MAX_REASON_PREVIEW)}...` : reason;
+    }
+
+    function openReasonModal(reason) {
+        selectedReason = reason;
+    }
+
+    function closeReasonModal() {
+        selectedReason = null;
     }
 </script>
 
@@ -63,7 +82,19 @@
                             </div>
                             <div class="min-w-0">
                                 <div class="text-sm font-semibold text-gray-900 wrap-break-word">{user.name}</div>
-                                <div class="text-xs text-gray-500 wrap-break-word">Reported: {user.reportedAt} | Reason: {user.reason}</div>
+                                <div class="text-xs text-gray-500">Reported: {user.reportedAt}</div>
+                                <div class="text-xs text-gray-500 wrap-break-word">
+                                    Reason: {reasonPreview(user.reason)}
+                                    {#if isLongReason(user.reason)}
+                                        <button
+                                            type="button"
+                                            class="ml-1 font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+                                            onclick={() => openReasonModal(user.reason)}
+                                        >
+                                            Show full
+                                        </button>
+                                    {/if}
+                                </div>
                             </div>
                         </div>
 
@@ -102,7 +133,19 @@
                         </div>
                         <div>
                             <div class="text-sm font-semibold text-gray-900">{user.name}</div>
-                            <div class="text-xs text-gray-500">Reported: {user.reportedAt} | Reason: {user.reason}</div>
+                            <div class="text-xs text-gray-500">Reported: {user.reportedAt}</div>
+                            <div class="text-xs text-gray-500 wrap-break-word">
+                                Reason: {reasonPreview(user.reason)}
+                                {#if isLongReason(user.reason)}
+                                    <button
+                                        type="button"
+                                        class="ml-1 font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+                                        onclick={() => openReasonModal(user.reason)}
+                                    >
+                                        Show full
+                                    </button>
+                                {/if}
+                            </div>
                         </div>
                     </div>
 
@@ -202,6 +245,32 @@
                     Yes, ban permanently
                 </button>
             </form>
+        </div>
+    </div>
+{/if}
+
+{#if selectedReason}
+    <div class="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <button
+            type="button"
+            class="absolute inset-0 bg-black/40"
+            aria-label="Close full reason"
+            onclick={closeReasonModal}
+        ></button>
+
+        <div class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-xl">
+            <h3 class="text-lg font-semibold text-gray-900">Report reason</h3>
+            <p class="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap wrap-break-word text-sm text-gray-700">{selectedReason}</p>
+
+            <div class="mt-5 flex items-center justify-end">
+                <button
+                    type="button"
+                    class="rounded-md border border-gray-200 px-3 py-1 text-sm"
+                    onclick={closeReasonModal}
+                >
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 {/if}
