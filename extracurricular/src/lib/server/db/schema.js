@@ -200,11 +200,15 @@ export const reports = pgTable(
 		reportedUserId: text('reported_user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
+		reporterUserId: text('reporter_user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
 		reason: text('reason'),
 		createdAt: timestamp('created_at')
 			.defaultNow()
 			.notNull()
-	}
+	},
+	(table) => [index('reporter_userId_idx').on(table.reporterUserId)]
 );
 
 export * from './auth.schema';

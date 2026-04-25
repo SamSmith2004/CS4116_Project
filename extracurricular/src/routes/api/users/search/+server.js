@@ -69,7 +69,10 @@ function getSearchFilters(url) {
 }
 
 function buildWhereClauses(sessionUserId, filters, ageSqlConvert) {
-	const whereClauses = [ne(user.id, sessionUserId)]; // ingore logged user
+	const whereClauses = [
+		ne(user.id, sessionUserId), // ingore logged user
+		eq(user.isBanned, false)
+	]; 
 
 	for (const term of filters.queryTerms) {
 		const like = `%${term}%`;

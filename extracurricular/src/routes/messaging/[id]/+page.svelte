@@ -154,8 +154,9 @@
             });
 
             if (!res.ok) {
-                const errText = await res.text();
-                throw new Error(errText || res.statusText || res.status);
+                const errJson = await res.json().catch(() => null);
+                const errMsg = errJson && errJson.message ? errJson.message : null;
+                throw new Error(errMsg);
             }
 
             showToast('Message reported', 'success');
