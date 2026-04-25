@@ -1,5 +1,5 @@
 <script>
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { showToast } from '$lib/toast.svelte.js';
 
 	let { data } = $props();
@@ -74,8 +74,8 @@
 		return requests.length + recommendations.length;
 	});
 
-	async function executeSearch() {
-		const hasAnyFilter = Boolean(
+	function hasAnyFiltersSelected() {
+		return Boolean(
 			searchQuery ||
 			selectedUniversity ||
 			selectedDegree ||
@@ -84,6 +84,57 @@
 			(selectedInterests?.length ?? 0) > 0 ||
 			sortBy !== 'none'
 		);
+	}
+
+	function makeUrlParamsFromFilters() {
+		const params = new URLSearchParams();
+		if (searchQuery) params.set('q', searchQuery);
+		if (selectedUniversity) params.set('university', selectedUniversity);
+		if (selectedDegree) params.set('degree', selectedDegree);
+		if (minAge) params.set('minAge', minAge);
+		if (maxAge) params.set('maxAge', maxAge);
+		if ((selectedInterests?.length ?? 0) > 0) params.set('interests', selectedInterests.join(','));
+		if (sortBy !== 'none') params.set('sort', sortBy);
+		return params;
+	}
+
+	function updateBrowserUrlWithFilters() {
+		if (!window) return;
+
+		const params = makeUrlParamsFromFilters();
+		const query = params.toString();
+		const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+		window.history.replaceState(window.history.state, '', nextUrl);
+	}
+
+	function loadFiltersFromUrl() {
+		if (!window) return false;
+		
+		const params = new URLSearchParams(window.location.search);
+		searchQuery = (params.get('q') ?? '').trim();
+		selectedUniversity = (params.get('university') ?? '').trim();
+		selectedDegree = (params.get('degree') ?? '').trim();
+		minAge = (params.get('minAge') ?? '').trim();
+		maxAge = (params.get('maxAge') ?? '').trim();
+		sortBy = (params.get('sort') ?? 'none').trim() || 'none';
+		selectedInterests = (params.get('interests') ?? '')
+			.split(',')
+			.map((value) => value.trim())
+			.filter(Boolean);
+
+		return hasAnyFiltersSelected();
+	}
+
+	onMount(async () => {
+		const hasFiltersInUrl = loadFiltersFromUrl();
+		if (hasFiltersInUrl) {
+			await executeSearch();
+		}
+	});
+
+	async function executeSearch() {
+		const hasAnyFilter = hasAnyFiltersSelected();
+		updateBrowserUrlWithFilters();
 
 		if (!hasAnyFilter) {
 			hasSearchActive = false;
@@ -92,14 +143,10 @@
 			return;
 		}
 
-		const params = new URLSearchParams();
-		if (searchQuery) params.set('q', searchQuery);
-		if (selectedUniversity) params.set('university', selectedUniversity);
-		if (selectedDegree) params.set('degree', selectedDegree);
-		if (minAge) params.set('minAge', minAge);
-		if (maxAge) params.set('maxAge', maxAge);
-		if ((selectedInterests?.length ?? 0) > 0) params.set('interests', selectedInterests.join(','));
-		params.set('sort', sortBy);
+		const params = makeUrlParamsFromFilters();
+		if (!params.has('sort')) {
+			params.set('sort', 'none');
+		}
 
 		const response = await fetch(`/api/users/search?${params.toString()}`);
 		const result = await response.json();
@@ -108,6 +155,7 @@
 			if (response.status === 400) {
 				minAge = '';
 				maxAge = '';
+				updateBrowserUrlWithFilters();
 				hasSearchActive = false;
 				searchResults = [];
 				searchIndex = 0;
@@ -162,6 +210,7 @@
 		searchIndex = 0;
 		hasSearchActive = false;
 		showFilterModal = false;
+		updateBrowserUrlWithFilters();
 	}
 
 	async function handleChoice(decision) {
