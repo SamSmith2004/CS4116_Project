@@ -56,7 +56,9 @@
 <TopBar placeholder="Filter conversations" onSearch={handleSearch} />
 
 <div class="max-w-2xl lg:max-w-5xl xl:max-w-7xl mx-auto px-4 py-4">
-    <h1 class="text-xl font-semibold text-gray-900 mb-3">Messages</h1>
+    <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/20 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Messages</h1>
+    </div>
 
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
         {#each filtered as convo (convo.id)}

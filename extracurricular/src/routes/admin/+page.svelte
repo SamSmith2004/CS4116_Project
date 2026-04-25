@@ -33,7 +33,9 @@
 <TopBar placeholder="Search reported users" onSearch={handleSearch} />
 
 <div class="max-w-4xl mx-auto px-4 py-6">
-    <h1 class="text-2xl font-semibold text-gray-900 mb-4">Reported Users</h1>
+    <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/20 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Reported Users</h1>
+    </div>
 
     {#if form?.message}
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -130,7 +132,9 @@
         </div>
     {/if}
 
-    <h2 class="text-xl font-semibold text-gray-900 mb-3">Banned Users</h2>
+    <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/20 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Banned Users</h2>
+    </div>
     {#if banned.length}
         <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
             {#each banned as user (user.id)}
