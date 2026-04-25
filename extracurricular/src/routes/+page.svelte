@@ -74,6 +74,10 @@
 		return requests.length + recommendations.length;
 	});
 
+	const shouldShowRelationshipNotice = $derived.by(() =>
+		Boolean(hasSearchActive && visibleMatch?.relationshipStatus)
+	);
+
 	function hasAnyFiltersSelected() {
 		return Boolean(
 			searchQuery ||
@@ -519,32 +523,44 @@
                 </dl>
               </div>
 
-              <div class="mt-8 grid grid-cols-2 gap-4">
-                <a
-                  href={`/profile/view/${visibleMatch.id}`}
-                  class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-blue-200 bg-blue-50 px-5 py-4 text-lg font-semibold text-blue-700 transition-colors hover:bg-blue-100"
-                >
-                  View Profile
-                </a>
+							<div class="mt-8 grid grid-cols-2 gap-4">
+								<a
+									href={`/profile/view/${visibleMatch.id}`}
+									class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-blue-200 bg-blue-50 px-5 py-4 text-lg font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+								>
+									View Profile
+								</a>
 
-                <button
-                  type="button"
-					onclick={() => handleChoice('fail')}
-					disabled={!currentMatch || isSubmittingDecision}
-                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Fail
-                </button>
+								{#if shouldShowRelationshipNotice}
+									<p class="col-span-2 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-center text-sm font-medium text-amber-800">
+										You have an existing relationship with this user.
+									</p>
+									<a
+										href="/matches"
+										class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-gray-200 bg-gray-50 px-5 py-4 text-lg font-semibold text-gray-700 transition-colors hover:bg-gray-100"
+									>
+										Go to Matches
+									</a>
+								{:else}
+									<button
+										type="button"
+						onclick={() => handleChoice('fail')}
+						disabled={!currentMatch || isSubmittingDecision}
+										class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Fail
+									</button>
 
-                <button
-                  type="button"
-					onclick={() => handleChoice('pass')}
-					disabled={!currentMatch || isSubmittingDecision}
-                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Pass
-                </button>
-              </div>
+									<button
+										type="button"
+						onclick={() => handleChoice('pass')}
+						disabled={!currentMatch || isSubmittingDecision}
+										class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Pass
+									</button>
+								{/if}
+							</div>
             </div>
           </div>
         </article>
