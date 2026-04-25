@@ -15,8 +15,12 @@ export async function POST({ params, request, locals }) {
     try {
         if (!userId) throw error(400, 'reported userId is required');
 
-        const [reportedUser] = await db.select({ id: user.id }).from(user).where(eq(user.id, userId));
+        const [reportedUser] = await db
+            .select({ id: user.id, isBanned: user.isBanned })
+            .from(user)
+            .where(eq(user.id, userId));
         if (!reportedUser) throw error(404, 'User not found');
+        if (reportedUser.isBanned) throw error(400, 'Banned users cannot be reported');
 
         const body = await request.json().catch(() => ({}));
         const reason = body.reason || null;
