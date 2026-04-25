@@ -60,7 +60,8 @@ export const load = async ({ locals }) => {
             gender: userDetails.gender
         })
         .from(user)
-        .leftJoin(userDetails, eq(user.id, userDetails.userId));
+        .leftJoin(userDetails, eq(user.id, userDetails.userId))
+        .where(eq(user.isBanned, false));
 
     const userInterestsRows = await db
         .select({
@@ -162,6 +163,19 @@ export const actions = {
 
         if (!targetUserId || targetUserId === sessionUser.id) {
             return fail(400, { message: 'Invalid target user.' });
+        }
+
+        const [targetUser] = await db
+            .select({
+                id: user.id,
+                isBanned: user.isBanned
+            })
+            .from(user)
+            .where(eq(user.id, targetUserId))
+            .limit(1);
+
+        if (!targetUser?.id || targetUser.isBanned) {
+            return fail(404, { message: 'Target user is unavailable.' });
         }
 
         if (!['pass', 'fail'].includes(decision)) {
