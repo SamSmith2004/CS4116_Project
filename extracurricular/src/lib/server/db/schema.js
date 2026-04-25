@@ -8,7 +8,8 @@ import {
 	time,
 	boolean,
 	pgEnum,
-	index
+	index,
+	uniqueIndex
 } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 
@@ -149,6 +150,29 @@ export const events = pgTable(
 		end_time: time('end_time')
 	},
 	(table) => [index('events_date_idx').on(table.date)]
+);
+
+export const eventRegistrations = pgTable(
+	'event_registrations',
+	{
+		id: uuid('id')
+			.primaryKey()
+			.defaultRandom(),
+		eventId: uuid('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at')
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		index('event_registrations_eventId_idx').on(table.eventId),
+		index('event_registrations_userId_idx').on(table.userId),
+		uniqueIndex('event_registrations_event_user_unique').on(table.eventId, table.userId)
+	]
 );
 
 export const convos = pgTable(
