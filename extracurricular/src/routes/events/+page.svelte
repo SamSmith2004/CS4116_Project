@@ -10,6 +10,7 @@
     let showAddEvent = $state(false);
     let showViewEvent = $state(false);
     let selectedEvent = $state(null);
+    let eventsList = $state([]);
 
     const HOUR_HEIGHT = 80; // each hour is h-20 ==> 80pixels
 
@@ -26,7 +27,7 @@
     }
 
     function getEventsAtDay(day) {
-        return data.events.filter(event => isSameDay(parseISO(event.date), day));
+        return eventsList.filter(event => isSameDay(parseISO(event.date), day));
     }
 
     function parseTimeParts(timeStr) {
@@ -63,6 +64,67 @@
         selectedEvent = event;
         showViewEvent = true;
     }
+
+    function attendeeCount(event) {
+        return Number(event?.attendeesCount) || 0;
+    }
+
+    function eventStartDate(event) {
+        if (!event?.date || !event?.time) return null;
+
+        const eventTime = String(event.time).slice(0, 8);
+        const startedAt = new Date(`${event.date}T${eventTime}`);
+        return Number.isNaN(startedAt.getTime()) ? null : startedAt;
+    }
+
+    function hasEventStarted(event) {
+        const startedAt = eventStartDate(event);
+        if (!startedAt) return false;
+        return startedAt <= new Date();
+    }
+
+    function patchEventRegistration(eventId, isRegistered, attendeesCount) {
+        eventsList = eventsList.map((event) => {
+            if (event.id !== eventId) return event;
+
+            return {
+                ...event,
+                isRegistered,
+                attendeesCount
+            };
+        });
+    }
+
+    function registrationEnhance() {
+        return async ({ result, update }) => {
+            if (result.type === 'success' && result.data?.eventId) {
+                patchEventRegistration(
+                    result.data.eventId,
+                    Boolean(result.data.isRegistered),
+                    Number(result.data.attendeesCount) || 0
+                );
+            }
+
+            await update({ invalidateAll: false, reset: false });
+        };
+    }
+
+    $effect(() => {
+        eventsList = data.events ?? [];
+    });
+
+    $effect(() => {
+        if (!showViewEvent || !selectedEvent) return;
+
+        const refreshedEvent = eventsList.find((event) => event.id === selectedEvent.id);
+        if (!refreshedEvent) {
+            showViewEvent = false;
+            selectedEvent = null;
+            return;
+        }
+
+        selectedEvent = refreshedEvent;
+    });
 </script>
 
 <div class="flex flex-col h-screen bg-transparent">
@@ -134,6 +196,9 @@
                                 <p class="text-[9px] text-blue-600 font-medium">
                                     {event.time.slice(0,5)} - {event.endTime?.slice(0,5) || '?'}
                                 </p>
+                                <p class="text-[9px] text-blue-700 font-semibold">
+                                    {attendeeCount(event)} attendee{attendeeCount(event) === 1 ? '' : 's'}
+                                </p>
                             </button>
                         {/each}
                     </div>
@@ -194,11 +259,46 @@
                     </div>
                 </div>
 
+                <div class="mb-6 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 flex items-center gap-3">
+                    <span class="material-symbols-rounded text-blue-700">groups</span>
+                    <p class="text-sm font-semibold text-blue-800">
+                        {attendeeCount(selectedEvent)} attendee{attendeeCount(selectedEvent) === 1 ? '' : 's'} registered
+                    </p>
+                </div>
+
                 <div class="mb-8">
                     <p class="text-xs font-bold text-gray-400 uppercase mb-2">Description</p>
                     <p class="text-gray-600 leading-relaxed whitespace-pre-wrap">
                         {selectedEvent.desc || "No description provided for this event."}
                     </p>
+                </div>
+
+                <div class="mb-8">
+                    {#if hasEventStarted(selectedEvent)}
+                        <p class="w-full py-3 text-center rounded-xl font-bold bg-gray-100 text-gray-500">
+                            Registration closed (event already started)
+                        </p>
+                    {:else if selectedEvent.isRegistered}
+                        <form method="POST" action="?/unregisterEvent" use:enhance={registrationEnhance}>
+                            <input type="hidden" name="eventId" value={selectedEvent.id} />
+                            <button
+                                type="submit"
+                                class="w-full py-3 bg-red-50 text-red-700 rounded-xl font-bold hover:bg-red-100 transition-colors"
+                            >
+                                Unregister
+                            </button>
+                        </form>
+                    {:else}
+                        <form method="POST" action="?/registerEvent" use:enhance={registrationEnhance}>
+                            <input type="hidden" name="eventId" value={selectedEvent.id} />
+                            <button
+                                type="submit"
+                                class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors"
+                            >
+                                Register
+                            </button>
+                        </form>
+                    {/if}
                 </div>
 
                 {#if data.user?.isAdmin}
