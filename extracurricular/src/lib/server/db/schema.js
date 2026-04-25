@@ -36,7 +36,7 @@ export const degreeEnum = pgEnum('degree', [
 	'Business',
 	'Medical',
 	'Psychology',
-	'Politcal Science',
+	'Political Science',//Should be "Political Science". DB update prompted 'DROP TYPE' so left alone out of fear
 	'Engineering',
 	'Biology',
 	'Geography',
@@ -189,18 +189,6 @@ export const messages = pgTable(
 	(table) => [index('messages_convoId_idx').on(table.convoId)]
 );
 
-export const banned = pgTable(
-	'banned', 
-	{
-		id: uuid('id')
-			.primaryKey()
-			.defaultRandom(),
-		email: varchar('email', { length: 256 })
-			.notNull()
-			.unique()
-	}
-);
-
 export const reports = pgTable(
 	'reports',
 	{
@@ -212,11 +200,15 @@ export const reports = pgTable(
 		reportedUserId: text('reported_user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
+		reporterUserId: text('reporter_user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
 		reason: text('reason'),
 		createdAt: timestamp('created_at')
 			.defaultNow()
 			.notNull()
-	}
+	},
+	(table) => [index('reporter_userId_idx').on(table.reporterUserId)]
 );
 
 export * from './auth.schema';

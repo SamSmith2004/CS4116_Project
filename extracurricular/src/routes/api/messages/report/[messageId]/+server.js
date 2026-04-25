@@ -1,7 +1,7 @@
 
 import { db } from '$lib/server/db';
-import { reports, messages as messagesTable } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { reports, messages as messagesTable, user } from '$lib/server/db/schema';
+import { and, eq } from 'drizzle-orm';
 import { error, json } from '@sveltejs/kit';
 
 const TAG = 'MessageAPI';
@@ -26,10 +26,34 @@ export async function POST({ params, request, locals }) {
             throw error(400, 'Reported user is not msg sender');
         }
 
-        await db.insert(reports).values({ messageId, reportedUserId, reason });
+        const [reportedUser] = await db
+            .select({ id: user.id, isBanned: user.isBanned })
+            .from(user)
+            .where(eq(user.id, reportedUserId));
+        if (!reportedUser) throw error(404, 'User not found');
+        if (reportedUser.isBanned) throw error(400, 'User is already banned');
+
+        const [existingMessageReport] = await db
+            .select({ id: reports.id })
+            .from(reports)
+            .where(
+                and(
+                    eq(reports.reporterUserId, sessionUser.id),
+                    eq(reports.messageId, messageId)
+                )
+            );
+        if (existingMessageReport) throw error(409, 'You have already reported this message');
+
+        await db.insert(reports).values({
+            messageId,
+            reportedUserId,
+            reporterUserId: sessionUser.id,
+            reason
+        });
 
         return json({ success: true });
     } catch (e) {
+        if (e?.status) throw e;
         console.error(TAG, e);
         throw error(500, 'Failed to report message');
     }

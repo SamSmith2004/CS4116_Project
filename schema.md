@@ -23,6 +23,7 @@ Database is PostgreSQL
 | lname | VARCHAR(50) | |
 | dob | DATE | |
 | is_admin | BOOLEAN | NOT NULL, DEFAULT false |
+| is_banned | BOOLEAN | NOT NULL, DEFAULT false |
 | email | TEXT | NOT NULL, UNIQUE |
 | email_verified | BOOLEAN | NOT NULL, DEFAULT false |
 | image | TEXT | |
@@ -157,14 +158,6 @@ Database is PostgreSQL
 | timestamp | TIMESTAMP | NOT NULL, DEFAULT NOW() |
 
 **Indexes:** `messages_convoId_idx` on `convo_id`
-
----
-
-### `banned`
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT random() |
-| email | VARCHAR(256) | NOT NULL, UNIQUE |
 
 ---
 

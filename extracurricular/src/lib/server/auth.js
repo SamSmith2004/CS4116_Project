@@ -30,7 +30,12 @@ export const auth = betterAuth({
 			isAdmin: {
 				 type: "boolean",
 				  defaultValue: false
-				 }
+				 },
+			isBanned: {
+				type: 'boolean',
+				defaultValue: false,
+				fieldName: 'is_banned'
+			}
 		}
 	},
 	plugins: [sveltekitCookies(getRequestEvent)] // make sure this is the last plugin in the array

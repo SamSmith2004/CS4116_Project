@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { and, eq, or } from 'drizzle-orm';
-
+import { getMatchPageFeed } from '$lib/server/matching.js';
 import { db } from '$lib/server/db';
 import { convos, matches } from '$lib/server/db/schema';
 import { getMatchPageFeed } from '$lib/server/matching';

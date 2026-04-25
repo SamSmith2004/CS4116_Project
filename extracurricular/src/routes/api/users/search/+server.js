@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { user, userDetails, interests } from '$lib/server/db/schema';
+import { user, userDetails, interests, matches } from '$lib/server/db/schema';
 import { json } from '@sveltejs/kit';
 import { and, asc, desc, eq, ilike, inArray, ne, or, sql } from 'drizzle-orm';
 import calculateAge from '$lib/utils/age.js';
@@ -31,7 +31,13 @@ export async function GET({ url, locals }) {
 
 		const users = await fetchMatchingUsers(whereClauses, sortType);
 		const interestsByUser = await fetchInterestsByUser(users.map((profile) => profile.id));
-		const userProfiles = users.map((profile) => buildUserProfiles(profile, interestsByUser));
+		const relationshipStatusByUser = await fetchRelationshipStatusByUser(
+			sessionUserId,
+			users.map((profile) => profile.id)
+		);
+		const userProfiles = users.map((profile) =>
+			buildUserProfiles(profile, interestsByUser, relationshipStatusByUser)
+		);
 
 		return json({ users: userProfiles, total: userProfiles.length });
 	} catch (error) {
@@ -69,7 +75,10 @@ function getSearchFilters(url) {
 }
 
 function buildWhereClauses(sessionUserId, filters, ageSqlConvert) {
-	const whereClauses = [ne(user.id, sessionUserId)]; // ingore logged user
+	const whereClauses = [
+		ne(user.id, sessionUserId), // ingore logged user
+		eq(user.isBanned, false)
+	]; 
 
 	for (const term of filters.queryTerms) {
 		const like = `%${term}%`;
@@ -158,11 +167,40 @@ async function fetchInterestsByUser(userIds) {
 	}, {});
 }
 
-function buildUserProfiles(profile, interestsByUser) {
+async function fetchRelationshipStatusByUser(sessionUserId, userIds) {
+	if (!sessionUserId || userIds.length === 0) {
+		return {};
+	}
+
+	const relationshipRows = await db
+		.select({
+			matcher: matches.matcher,
+			matched: matches.matched,
+			status: matches.status
+		})
+		.from(matches)
+		.where(
+			or(
+				and(eq(matches.matcher, sessionUserId), inArray(matches.matched, userIds)),
+				and(eq(matches.matched, sessionUserId), inArray(matches.matcher, userIds))
+			)
+		);
+
+	return relationshipRows.reduce((acc, row) => {
+		const otherUserId = row.matcher === sessionUserId ? row.matched : row.matcher;
+		if (!acc[otherUserId] && row.status) {
+			acc[otherUserId] = row.status;
+		}
+		return acc;
+	}, {});
+}
+
+function buildUserProfiles(profile, interestsByUser, relationshipStatusByUser) {
 	const first = profile.fname?.trim() ?? '';
 	const last = profile.lname?.trim() ?? '';
 	const full = `${first} ${last}`.trim();
 	const displayName = full || profile.name?.trim() || profile.email?.split('@')[0] || 'Unknown User';
+	const relationshipStatus = relationshipStatusByUser?.[profile.id];
 
 	return {
 		id: profile.id,
@@ -172,7 +210,8 @@ function buildUserProfiles(profile, interestsByUser) {
 		course: profile.degree,
 		bio: profile.bio ?? 'No bio yet.',
 		interests: interestsByUser[profile.id] ?? [],
-		imageUrl: profile.avatarUrl
+		imageUrl: profile.avatarUrl,
+		...(relationshipStatus ? { relationshipStatus } : {})
 	};
 }
 

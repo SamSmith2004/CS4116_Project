@@ -8,6 +8,7 @@ export const user = pgTable("user", {
   lname: varchar("lname", { length: 50 }),
   dob: date("dob"),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  isBanned: boolean("is_banned").default(false).notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),

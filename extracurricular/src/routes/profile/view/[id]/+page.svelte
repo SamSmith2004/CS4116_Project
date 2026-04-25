@@ -42,8 +42,9 @@
             });
 
             if (!res.ok) {
-                const err = await res.text();
-                throw new Error(err || res.statusText || String(res.status));
+                const errJson = await res.json().catch(() => null);
+                const errMsg = errJson && errJson.message ? errJson.message : null;
+                throw new Error(errMsg);
             }
 
             showToast('Profile reported', 'success');

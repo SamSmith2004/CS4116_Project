@@ -1,5 +1,5 @@
 <script>
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { showToast } from '$lib/toast.svelte.js';
 
 	let { data } = $props();
@@ -59,10 +59,20 @@
 		return universityTintMap[currentMatch.university] ?? '#f8fafc';
 	});
 
-	const visibleMatch = $derived.by(() => currentMatch);
+	const hasAnySearchCriteria = $derived.by(() =>
+		Boolean(
+			searchQuery ||
+			selectedUniversity ||
+			selectedDegree ||
+			minAge ||
+			maxAge ||
+			(selectedInterests?.length ?? 0) > 0 ||
+			sortBy !== 'none'
+		)
+	);
 
 	const activePosition = $derived.by(() => {
-		if (!visibleMatch) return 0;
+		if (!currentMatch) return 0;
 		if (hasSearchActive) return searchIndex + 1;
 		if (activeGroup === 'requests') return requestIndex + 1;
 		if (activeGroup === 'recommendations') return recommendationIndex + 1;
@@ -74,24 +84,17 @@
 		return requests.length + recommendations.length;
 	});
 
-	async function executeSearch() {
-		const hasAnyFilter = Boolean(
-			searchQuery ||
-			selectedUniversity ||
-			selectedDegree ||
-			minAge ||
-			maxAge ||
-			(selectedInterests?.length ?? 0) > 0 ||
-			sortBy !== 'none'
-		);
+	const shouldShowRelationshipNotice = $derived.by(() =>
+		Boolean(hasSearchActive && currentMatch?.relationshipStatus)
+	);
 
-		if (!hasAnyFilter) {
-			hasSearchActive = false;
-			searchResults = [];
-			searchIndex = 0;
-			return;
-		}
+	function clearSearchState() {
+		hasSearchActive = false;
+		searchResults = [];
+		searchIndex = 0;
+	}
 
+	function makeUrlParamsFromFilters() {
 		const params = new URLSearchParams();
 		if (searchQuery) params.set('q', searchQuery);
 		if (selectedUniversity) params.set('university', selectedUniversity);
@@ -99,7 +102,56 @@
 		if (minAge) params.set('minAge', minAge);
 		if (maxAge) params.set('maxAge', maxAge);
 		if ((selectedInterests?.length ?? 0) > 0) params.set('interests', selectedInterests.join(','));
-		params.set('sort', sortBy);
+		if (sortBy !== 'none') params.set('sort', sortBy);
+		return params;
+	}
+
+	function updateBrowserUrlWithFilters() {
+		if (!window) return;
+
+		const params = makeUrlParamsFromFilters();
+		const query = params.toString();
+		const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+		window.history.replaceState(window.history.state, '', nextUrl);
+	}
+
+	function loadFiltersFromUrl() {
+		if (!window) return false;
+		
+		const params = new URLSearchParams(window.location.search);
+		searchQuery = (params.get('q') ?? '').trim();
+		selectedUniversity = (params.get('university') ?? '').trim();
+		selectedDegree = (params.get('degree') ?? '').trim();
+		minAge = (params.get('minAge') ?? '').trim();
+		maxAge = (params.get('maxAge') ?? '').trim();
+		sortBy = (params.get('sort') ?? 'none').trim() || 'none';
+		selectedInterests = (params.get('interests') ?? '')
+			.split(',')
+			.map((value) => value.trim())
+			.filter(Boolean);
+
+		return hasAnySearchCriteria;
+	}
+
+	onMount(async () => {
+		const hasFiltersInUrl = loadFiltersFromUrl();
+		if (hasFiltersInUrl) {
+			await executeSearch();
+		}
+	});
+
+	async function executeSearch() {
+		updateBrowserUrlWithFilters();
+
+		if (!hasAnySearchCriteria) {
+			clearSearchState();
+			return;
+		}
+
+		const params = makeUrlParamsFromFilters();
+		if (!params.has('sort')) {
+			params.set('sort', 'none');
+		}
 
 		const response = await fetch(`/api/users/search?${params.toString()}`);
 		const result = await response.json();
@@ -108,9 +160,8 @@
 			if (response.status === 400) {
 				minAge = '';
 				maxAge = '';
-				hasSearchActive = false;
-				searchResults = [];
-				searchIndex = 0;
+				updateBrowserUrlWithFilters();
+				clearSearchState();
 				showFilterModal = false;
 				showToast(result?.error || 'Invalid age filter', 'error');
 				return;
@@ -145,11 +196,6 @@
 		showFilterModal = false;
 	}
 
-	async function applyFilters() {
-		await executeSearch();
-		showFilterModal = false;
-	}
-
 	function resetFilters() {
 		searchQuery = '';
 		selectedUniversity = '';
@@ -158,10 +204,14 @@
 		minAge = '';
 		maxAge = '';
 		sortBy = 'none';
-		searchResults = [];
-		searchIndex = 0;
-		hasSearchActive = false;
+		clearSearchState();
 		showFilterModal = false;
+		updateBrowserUrlWithFilters();
+	}
+
+	function skipCurrentSearchResult() {
+		if (!hasSearchActive || !currentMatch) return;
+		searchResults = searchResults.filter((profile) => profile.id !== currentMatch.id);
 	}
 
 	async function handleChoice(decision) {
@@ -401,7 +451,7 @@
 				</span>
 			</div>
 
-			{#if !visibleMatch}
+			{#if !currentMatch}
 				<div class="rounded-3xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
 					<h2 class="text-2xl font-bold text-gray-800">No profiles available</h2>
 					<p class="mt-2 text-gray-500">
@@ -416,8 +466,8 @@
 					<div class="flex flex-col md:flex-row">
 						<div class="shrink-0 md:w-2/5">
 							<img
-								src={visibleMatch.imageUrl}
-								alt={`Profile picture of ${visibleMatch.name}`}
+								src={currentMatch.imageUrl}
+								alt={`Profile picture of ${currentMatch.name}`}
 								class="h-72 w-full object-cover md:h-full"
 							/>
 						</div>
@@ -439,30 +489,30 @@
 
 								<div class="flex items-baseline gap-3">
 									<h2 class="text-left text-3xl leading-tight font-bold text-gray-900">
-										{visibleMatch.name}
+										{currentMatch.name}
 									</h2>
-									<span class="text-xl text-gray-500">{visibleMatch.age}</span>
+									<span class="text-xl text-gray-500">{currentMatch.age}</span>
 								</div>
 
                 <dl class="mt-5 space-y-4 text-gray-700">
                   <div>
                     <dt class="text-xs uppercase tracking-widest text-gray-400">University</dt>
-                    <dd class="text-base font-medium text-gray-900 mt-0.5">{visibleMatch.university}</dd>
+										<dd class="text-base font-medium text-gray-900 mt-0.5">{currentMatch.university}</dd>
                   </div>
                   <div>
                     <dt class="text-xs uppercase tracking-widest text-gray-400">Course</dt>
-                    <dd class="text-base font-medium text-gray-900 mt-0.5">{visibleMatch.course}</dd>
+										<dd class="text-base font-medium text-gray-900 mt-0.5">{currentMatch.course}</dd>
                   </div>
                   <div>
                     <dt class="text-xs uppercase tracking-widest text-gray-400 mb-2">Interests</dt>
                     <dd class="flex flex-wrap gap-2">
-                      {#each visibleMatch.interests.slice(0, 3) as interest}
+											{#each currentMatch.interests.slice(0, 3) as interest}
                         <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-medium">{interest}</span>
                       {/each}
 
-                      {#if visibleMatch.interests.length > 3}
+											{#if currentMatch.interests.length > 3}
                         <span class="px-3 py-1 rounded-full bg-slate-200 text-slate-700 text-sm font-semibold">
-                          +{visibleMatch.interests.length - 3} more
+													+{currentMatch.interests.length - 3} more
                         </span>
                       {/if}
                     </dd>
@@ -470,32 +520,47 @@
                 </dl>
               </div>
 
-              <div class="mt-8 grid grid-cols-2 gap-4">
-                <a
-                  href={`/profile/view/${visibleMatch.id}`}
-                  class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-blue-200 bg-blue-50 px-5 py-4 text-lg font-semibold text-blue-700 transition-colors hover:bg-blue-100"
-                >
-                  View Profile
-                </a>
+							<div class="mt-8 grid grid-cols-2 gap-4">
+								<a
+									href={`/profile/view/${currentMatch.id}`}
+									class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-blue-200 bg-blue-50 px-5 py-4 text-lg font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+								>
+									View Profile
+								</a>
 
-                <button
-                  type="button"
-					onclick={() => handleChoice('fail')}
-					disabled={!currentMatch || isSubmittingDecision}
-                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Fail
-                </button>
+								{#if shouldShowRelationshipNotice}
+									<p class="col-span-2 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-center text-sm font-medium text-amber-800">
+										You have an existing relationship with this user. Please visit the
+										<a href="/matches" class="underline underline-offset-2">Matches page</a>
+										for details.
+									</p>
+									<button
+										type="button"
+										onclick={skipCurrentSearchResult}
+										class="col-span-2 inline-flex w-full items-center justify-center rounded-2xl border-2 border-gray-200 bg-gray-50 px-5 py-4 text-lg font-semibold text-gray-700 transition-colors hover:bg-gray-100"
+									>
+										Next
+									</button>
+								{:else}
+									<button
+										type="button"
+						onclick={() => handleChoice('fail')}
+						disabled={!currentMatch || isSubmittingDecision}
+										class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Fail
+									</button>
 
-                <button
-                  type="button"
-					onclick={() => handleChoice('pass')}
-					disabled={!currentMatch || isSubmittingDecision}
-                  class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Pass
-                </button>
-              </div>
+									<button
+										type="button"
+						onclick={() => handleChoice('pass')}
+						disabled={!currentMatch || isSubmittingDecision}
+										class="w-full rounded-2xl px-5 py-4 text-lg font-semibold bg-emerald-50 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Pass
+									</button>
+								{/if}
+							</div>
             </div>
           </div>
         </article>
