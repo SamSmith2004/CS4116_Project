@@ -10,10 +10,26 @@
     let selectedReportTarget = $state(null);
     let selectedReason = $state(null);
     const MAX_REASON_PREVIEW = 30;
+    let searchQuery = $state('');
+    
 
-    function handleSearch() {
-        // TODO
+    function handleSearch(query) {
+        searchQuery = query;
     }
+
+    const filteredReported = $derived(
+        searchQuery
+            ? reported.filter(u => 
+                u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                u.reason?.toLowerCase().includes(searchQuery.toLowerCase()))
+            : reported
+    );
+
+    const filteredBanned = $derived(
+        searchQuery
+            ? banned.filter(u => u.email.toLowerCase().includes(searchQuery.toLowerCase()))
+            : banned
+    );
 
     function openBanModal(user) {
         selectedUser = user;
@@ -69,7 +85,7 @@
 
     {#if reported.length}
         <div class="mb-6 overflow-hidden rounded-b-2xl border border-gray-200 bg-white shadow-sm divide-y divide-gray-100">
-            {#each reported as user (user.id)}
+            {#each filteredReported as user (user.id)}
                 <div class="px-4 py-3 sm:hidden">
                     <div class="flex flex-col gap-3">
                         <div class="flex min-w-0 items-center gap-3">
@@ -190,7 +206,7 @@
     </div>
     {#if banned.length}
         <div class="overflow-hidden rounded-b-2xl border border-gray-200 bg-white shadow-sm divide-y divide-gray-100">
-            {#each banned as user (user.id)}
+            {#each filteredBanned as user (user.id)}
                 <div class="flex items-center justify-between px-4 py-3">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center bg-red-50 text-red-600 border border-red-200"> 

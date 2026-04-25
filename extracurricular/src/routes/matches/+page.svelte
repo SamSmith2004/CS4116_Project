@@ -1,9 +1,11 @@
 <script>
+    import TopBar from '$lib/components/TopBar.svelte';
     let { data } = $props();
     const requests = $derived.by(() => data.requests ?? []);
     const currentMatches = $derived.by(() => data.currentMatches ?? []);
     const decisionHistory = $derived.by(() => data.decisionHistory ?? []);
     let hidePendingPanels = $state(false);
+    let searchQuery = $state('');
 
     const currentMatch = $derived.by(() => {
         return requests[0] ?? null;
@@ -25,8 +27,23 @@
         return !hidePendingPanels || !!currentMatch;
     });
 
+    function handleSearch(query) {
+        searchQuery = query;
+    }
+    const filteredMatches = $derived(
+        searchQuery
+            ? currentMatches.filter((match) =>
+                match.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                match.university.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                match.course.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            : currentMatches
+    );
+
 </script>
 
+
+<TopBar placeholder="Search your connections..." onSearch={handleSearch} />
 <main class="min-h-[calc(100vh-3.5rem)] bg-transparent px-4 py-8 md:px-6 md:py-10">
     <div class="max-w-6xl mx-auto">
         <div class="mb-8 rounded-3xl border border-gray-200/80 bg-white/75 px-6 py-5 text-center shadow-lg backdrop-blur-md">
@@ -142,7 +159,7 @@
                         <p class="text-sm text-gray-400 mt-4">No current matches yet.</p>
                     {:else}
                         <ul class="mt-4 space-y-3">
-                            {#each currentMatches as match (match.id)}
+                            {#each filteredMatches as match (match.id)}
                                 <li
                                     class="rounded-xl border border-gray-200 p-3"
                                     style={`background-color: ${getUniversityTint(match)};`}
