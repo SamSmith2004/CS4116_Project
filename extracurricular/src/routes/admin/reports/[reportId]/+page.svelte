@@ -35,17 +35,17 @@
 </script>
 
 <div class="max-w-4xl mx-auto px-4 py-6">
-    <div class="mb-5">
+    <div class="mb-5 rounded-2xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-sm">
         <a href="/admin" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
             <span class="material-symbols-rounded text-[18px]">arrow_back</span>
             Back to admin
         </a>
-    </div>
 
-    <h1 class="text-2xl font-semibold text-gray-900 mb-1">Reported Messages</h1>
-    <p class="text-sm text-gray-500 mb-5">
-        User: {reportedUser.name} ({reportedUser.email})
-    </p>
+        <h1 class="mt-2 text-xl font-semibold tracking-tight text-gray-900">Reported Messages</h1>
+        <p class="text-sm text-gray-500">
+            User: {reportedUser.name} ({reportedUser.email})
+        </p>
+    </div>
 
     {#if reportedMessages.length}
         <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-3 space-y-3">

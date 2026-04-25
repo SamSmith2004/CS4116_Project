@@ -33,18 +33,23 @@
 <TopBar placeholder="Search reported users" onSearch={handleSearch} />
 
 <div class="max-w-4xl mx-auto px-4 py-6">
-    <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/20 mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Reported Users</h1>
-    </div>
-
     {#if form?.message}
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {form.message}
         </div>
     {/if}
 
+    <div class="rounded-t-2xl border border-gray-200 border-b-0 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-sm">
+        <div class="flex items-center justify-between gap-3">
+            <h1 class="text-xl font-semibold tracking-tight text-gray-900">Reported Users</h1>
+            <span class="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                {reported.length}
+            </span>
+        </div>
+    </div>
+
     {#if reported.length}
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden mb-6">
+        <div class="mb-6 overflow-hidden rounded-b-2xl border border-gray-200 bg-white shadow-sm divide-y divide-gray-100">
             {#each reported as user (user.id)}
                 <div class="px-4 py-3 sm:hidden">
                     <div class="flex flex-col gap-3">
@@ -126,17 +131,22 @@
             {/each}
         </div>
     {:else}
-        <div class="flex flex-col items-center justify-center py-12 text-gray-500 mb-6">
+        <div class="mb-6 flex flex-col items-center justify-center rounded-b-2xl border border-gray-200 bg-white py-12 text-gray-500 shadow-sm">
             <span class="material-symbols-rounded text-[48px] mb-2">report</span>
             <p class="text-sm">No reported users</p>
         </div>
     {/if}
 
-    <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/20 mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Banned Users</h2>
+    <div class="rounded-t-2xl border border-gray-200 border-b-0 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-sm">
+        <div class="flex items-center justify-between gap-3">
+            <h2 class="text-xl font-semibold tracking-tight text-gray-900">Banned Users</h2>
+            <span class="rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                {banned.length}
+            </span>
+        </div>
     </div>
     {#if banned.length}
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
+        <div class="overflow-hidden rounded-b-2xl border border-gray-200 bg-white shadow-sm divide-y divide-gray-100">
             {#each banned as user (user.id)}
                 <div class="flex items-center justify-between px-4 py-3">
                     <div class="flex items-center gap-4">
@@ -159,7 +169,7 @@
             {/each}
         </div>
     {:else}
-        <div class="flex flex-col items-center justify-center py-8 text-gray-500">
+        <div class="flex flex-col items-center justify-center rounded-b-2xl border border-gray-200 bg-white py-8 text-gray-500 shadow-sm">
             <p class="text-sm">No banned users</p>
         </div>
     {/if}
