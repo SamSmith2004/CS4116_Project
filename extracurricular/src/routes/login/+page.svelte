@@ -23,12 +23,12 @@
 </script>
 
 <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4 lg:p-6">
-    <div class="w-full max-w-[1500px] lg:grid lg:grid-cols-3 lg:items-center lg:gap-6">
+    <div class="w-full max-w-375 lg:grid lg:grid-cols-3 lg:items-center lg:gap-6">
         <div class="hidden lg:flex items-center justify-center">
             <img
                 src="/images/stock1.jpg"
                 alt="Students collaborating"
-                class="w-[78%] h-[22rem] xl:h-[26rem] rounded-3xl shadow-lg object-cover"
+                class="w-[78%] h-88 xl:h-104 rounded-3xl shadow-lg object-cover"
             />
         </div>
 
@@ -115,7 +115,7 @@
             <img
                 src="/images/stock2.jpg"
                 alt="Campus social activity"
-                class="w-[78%] h-[22rem] xl:h-[26rem] rounded-3xl shadow-lg object-cover"
+                class="w-[78%] h-88 xl:h-104 rounded-3xl shadow-lg object-cover"
             />
         </div>
     </div>
