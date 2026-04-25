@@ -189,18 +189,6 @@ export const messages = pgTable(
 	(table) => [index('messages_convoId_idx').on(table.convoId)]
 );
 
-export const banned = pgTable(
-	'banned', 
-	{
-		id: uuid('id')
-			.primaryKey()
-			.defaultRandom(),
-		email: varchar('email', { length: 256 })
-			.notNull()
-			.unique()
-	}
-);
-
 export const reports = pgTable(
 	'reports',
 	{
