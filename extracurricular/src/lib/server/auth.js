@@ -28,13 +28,12 @@ export const auth = betterAuth({
 				fieldName: 'dob'
 			},
 			isAdmin: {
-				 type: "boolean",
-				  defaultValue: false
-				 },
+				type: "boolean",
+				defaultValue: false
+			},
 			isBanned: {
 				type: 'boolean',
-				defaultValue: false,
-				fieldName: 'is_banned'
+				defaultValue: false
 			}
 		}
 	},
