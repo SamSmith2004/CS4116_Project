@@ -86,7 +86,7 @@ export const actions = {
 			return fail(500, { message: 'Unexpected error' });
 		}
 
-		return redirect(302, '/profile');
+		return redirect(302, '/profile/edit');
     }
 }
 
