@@ -2,14 +2,29 @@
     import TopBar from '$lib/components/TopBar.svelte';
     import ConvoPreview from '$lib/components/ConvoPreview.svelte';
     import formatTime from '$lib/utils/time.js';
+    import { goto } from '$app/navigation';
 
     import { page } from '$app/stores';
 	import { onMount } from 'svelte';
     let { data } = $props();
 
-    let searchQuery = $state('');
+    let searchQuery = $state($page.url.searchParams.get('q') ?? '');
+
     function handleSearch(query) {
         searchQuery = query;
+
+        const trimmed = query.trim();
+
+        const nextUrl = trimmed
+            ? `${$page.url.pathname}?q=${encodeURIComponent(trimmed)}`
+            : $page.url.pathname;
+
+        goto(nextUrl, {
+            replaceState: true,
+            noScroll: true,
+            keepFocus: true,
+            invalidateAll: false
+        });
     }
 
     let pollInterval = null; //TODO: look into possibly websockets

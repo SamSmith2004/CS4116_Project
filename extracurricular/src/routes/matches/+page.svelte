@@ -1,11 +1,13 @@
 <script>
     import TopBar from '$lib/components/TopBar.svelte';
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
     let { data } = $props();
     const requests = $derived.by(() => data.requests ?? []);
     const currentMatches = $derived.by(() => data.currentMatches ?? []);
     const decisionHistory = $derived.by(() => data.decisionHistory ?? []);
     let hidePendingPanels = $state(false);
-    let searchQuery = $state('');
+    let searchQuery = $state($page.url.searchParams.get('q') ?? '');
 
     const currentMatch = $derived.by(() => {
         return requests[0] ?? null;
@@ -29,6 +31,18 @@
 
     function handleSearch(query) {
         searchQuery = query;
+
+        const trimmed = query.trim();
+        const nextUrl = trimmed
+            ? `${$page.url.pathname}?q=${encodeURIComponent(trimmed)}`
+            : $page.url.pathname;
+
+        goto(nextUrl, {
+            replaceState: true,
+            noScroll: true,
+            keepFocus: true,
+            invalidateAll: false
+        });
     }
     const filteredMatches = $derived(
         searchQuery
