@@ -2,6 +2,8 @@
     import TopBar from '$lib/components/TopBar.svelte';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
+
+    const defaultAvatarUrl = '/images/logo.png';
     let { data } = $props();
     const requests = $derived.by(() => data.requests ?? []);
     const currentMatches = $derived.by(() => data.currentMatches ?? []);
@@ -90,7 +92,7 @@
                             <div class="flex flex-col sm:flex-row">
                                 <div class="sm:w-2/5 shrink-0">
                                     <img
-                                        src={currentMatch.imageUrl}
+                                        src={currentMatch.imageUrl || defaultAvatarUrl}
                                         alt={`Profile picture of ${currentMatch.name}`}
                                         class="w-full h-72 sm:h-full object-cover"
                                     />

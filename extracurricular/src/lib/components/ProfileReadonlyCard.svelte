@@ -1,5 +1,6 @@
 <script>
     let { profile } = $props();
+    const defaultAvatarUrl = '/images/logo.png';
 
     function toTitleCase(value) {
         if (!value) return 'Not specified';
@@ -10,11 +11,11 @@
 <div class="flex flex-col gap-12 md:flex-row">
     <aside class="flex w-full flex-col items-center md:w-1/3">
         <div class="mb-4 flex h-80 w-64 items-center justify-center overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-inner">
-            {#if profile.avatarUrl}
-                <img src={profile.avatarUrl} alt={`Avatar of ${profile.name}`} class="h-full w-full object-cover" />
-            {:else}
-                <span class="material-symbols-rounded text-[96px] text-gray-300">account_circle</span>
-            {/if}
+            <img
+                src={profile.avatarUrl || defaultAvatarUrl}
+                alt={`Avatar of ${profile.name}`}
+                class="h-full w-full object-cover"
+            />
         </div>
 
         <h2 class="text-center text-2xl font-bold text-gray-900">{profile.name}</h2>
