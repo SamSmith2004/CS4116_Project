@@ -1,6 +1,6 @@
 <script>
     let { profile } = $props();
-    const defaultAvatarUrl = '/images/logo.png';
+    const defaultAvatarUrl = '/images/tempAvatar.png';
 
     function toTitleCase(value) {
         if (!value) return 'Not specified';

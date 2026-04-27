@@ -2,7 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { showToast } from '$lib/toast.svelte.js';
 
-	const defaultAvatarUrl = '/images/logo.png';
+	const defaultAvatarUrl = '/images/tempAvatar.png';
 
 	let { data } = $props();
 

@@ -3,7 +3,7 @@
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
 
-    const defaultAvatarUrl = '/images/logo.png';
+    const defaultAvatarUrl = '/images/tempAvatar.png';
     let { data } = $props();
     const requests = $derived.by(() => data.requests ?? []);
     const currentMatches = $derived.by(() => data.currentMatches ?? []);
