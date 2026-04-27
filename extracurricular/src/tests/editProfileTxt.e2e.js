@@ -8,8 +8,9 @@ test('edit profile', async ({ page }) => {
 	await signIn(page, email, password);
     await expect(page.getByText('Matching Process')).toBeVisible();
 
-    await page.goto("/profile")
-	await expect(page.getByText('EDIT PROFILE')).toBeVisible();
+	await page.goto("/profile");
+	await page.getByRole('button', { name: /modify/i }).click();
+	await expect(page.getByText('Edit Profile')).toBeVisible();
 
 	await page.fill('input[name="fname"]', 'Playwright');
 	await page.fill('input[name="lname"]', 'Tester');
@@ -29,9 +30,15 @@ test('edit profile', async ({ page }) => {
 	}
 
 	await Promise.all([
-		page.waitForNavigation({ waitUntil: 'networkidle' }),
+		page.waitForURL('**/profile', { waitUntil: 'networkidle' }),
 		page.click('button[form="profile-form"]')
 	]);
+
+	await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+	await expect(page.getByRole('button', { name: /modify/i })).toBeVisible();
+	await expect(page.getByText('Playwright Tester')).toBeVisible();
+	await page.getByRole('button', { name: /modify/i }).click();
+	await expect(page.getByRole('heading', { name: 'Edit Profile' })).toBeVisible();
 
 	await expect(page.locator('input[name="fname"]')).toHaveValue('Playwright');
 	await expect(page.locator('input[name="lname"]')).toHaveValue('Tester');
@@ -51,6 +58,10 @@ test('edit profile', async ({ page }) => {
 	await revert();
 
 	async function revert() {
+		await page.goto('/profile');
+		await page.getByRole('button', { name: /modify/i }).click();
+		await expect(page.getByRole('heading', { name: 'Edit Profile' })).toBeVisible();
+
 		await page.fill('input[name="fname"]', 'Johnny');
 		await page.fill('input[name="lname"]', 'Test');
 		await page.fill('textarea[name="bio"]', '');
@@ -64,10 +75,11 @@ test('edit profile', async ({ page }) => {
 		if (await movieInput.count() > 0) await movieInput.evaluate((el) => { el.checked = false; el.dispatchEvent(new Event('change', { bubbles: true })); });
 
         await Promise.all([
-		    page.waitForNavigation({ waitUntil: 'networkidle' }),
+		    page.waitForURL('**/profile', { waitUntil: 'networkidle' }),
 		    page.click('button[form="profile-form"]')
 	    ]);
 
-        await expect(page.locator('textarea[name="bio"]')).toHaveValue('');
+		await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+		await expect(page.getByText('Johnny Test')).toBeVisible();
 	}
 });

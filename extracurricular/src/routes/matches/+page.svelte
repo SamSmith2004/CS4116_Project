@@ -1,11 +1,15 @@
 <script>
     import TopBar from '$lib/components/TopBar.svelte';
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
+
+    const defaultAvatarUrl = '/images/tempAvatar.png';
     let { data } = $props();
     const requests = $derived.by(() => data.requests ?? []);
     const currentMatches = $derived.by(() => data.currentMatches ?? []);
-    const decisionHistory = $derived.by(() => data.decisionHistory ?? []);
+    const blocklist = $derived.by(() => data.blocklist ?? []);
     let hidePendingPanels = $state(false);
-    let searchQuery = $state('');
+    let searchQuery = $state($page.url.searchParams.get('q') ?? '');
 
     const currentMatch = $derived.by(() => {
         return requests[0] ?? null;
@@ -29,6 +33,18 @@
 
     function handleSearch(query) {
         searchQuery = query;
+
+        const trimmed = query.trim();
+        const nextUrl = trimmed
+            ? `${$page.url.pathname}?q=${encodeURIComponent(trimmed)}`
+            : $page.url.pathname;
+
+        goto(nextUrl, {
+            replaceState: true,
+            noScroll: true,
+            keepFocus: true,
+            invalidateAll: false
+        });
     }
     const filteredMatches = $derived(
         searchQuery
@@ -51,9 +67,7 @@
             <p class="mt-2 text-gray-700">Review people who have sent you match requests.</p>
         </div>
 
-        <div
-            class={`grid grid-cols-1 gap-6 items-start ${showPendingPanels ? 'xl:grid-cols-[1fr_320px]' : 'xl:grid-cols-1'}`}
-        >
+        <div class="grid grid-cols-1 gap-6 items-start xl:grid-cols-[1fr_320px]">
             <div>
                 {#if showPendingPanels}
                     {#if !currentMatch}
@@ -76,7 +90,7 @@
                             <div class="flex flex-col sm:flex-row">
                                 <div class="sm:w-2/5 shrink-0">
                                     <img
-                                        src={currentMatch.imageUrl}
+                                        src={currentMatch.imageUrl || defaultAvatarUrl}
                                         alt={`Profile picture of ${currentMatch.name}`}
                                         class="w-full h-72 sm:h-full object-cover"
                                     />
@@ -217,17 +231,15 @@
                 </section>
             </div>
 
-            {#if showPendingPanels}
-                <aside class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
-                    <h3 class="text-lg font-semibold text-gray-900">History</h3>
-                    <p class="text-sm text-gray-500 mt-1">Recent decisions</p>
+            <aside class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Blocklist</h3>
 
-                    {#if decisionHistory.length === 0}
-                        <p class="text-sm text-gray-400 mt-6">No profiles reviewed yet.</p>
+                    {#if blocklist.length === 0}
+                        <p class="text-sm text-gray-400 mt-6">No blocked users.</p>
                     {:else}
                         <ul class="mt-4 space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-                            {#each decisionHistory as item (item.id)}
-                                <li class="flex items-center gap-3 rounded-xl border border-gray-200 p-3">
+                            {#each blocklist as item (item.id)}
+                                <li class="flex items-start gap-3 rounded-xl border border-gray-200 p-3">
                                     <img
                                         src={item.imageUrl}
                                         alt={item.name}
@@ -238,15 +250,28 @@
                                         <p class="text-xs text-gray-500 truncate">{item.course}</p>
                                         <p class="text-xs text-gray-500 mt-1 line-clamp-2">{item.bio}</p>
                                     </div>
-                                    <span class="text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded-full {item.decision === 'pass' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">
-                                        {item.decision}
-                                    </span>
+                                    <div class="flex shrink-0 flex-col items-end gap-2">
+                                        {#if item.blockStatus === 'banned'}
+                                            <span class="text-xs font-semibold tracking-wide px-2 py-1 rounded-full bg-red-100 text-red-700">
+                                                Banned
+                                            </span>
+                                        {:else if item.canUnblock}
+                                            <form method="POST" action="?/unblock">
+                                                <input type="hidden" name="matchId" value={item.id} />
+                                                <button
+                                                    type="submit"
+                                                    class="text-xs font-semibold rounded-lg px-2.5 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                                                >
+                                                    Unblock
+                                                </button>
+                                            </form>
+                                        {/if}
+                                    </div>
                                 </li>
                             {/each}
                         </ul>
                     {/if}
-                </aside>
-            {/if}
+            </aside>
         </div>
     </div>
 </main>

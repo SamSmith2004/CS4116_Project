@@ -10,13 +10,13 @@ test('signup flow', async ({ page }) => {
     await page.goto('/login');
     await Promise.all([
         page.waitForURL('**/login/register-details', { timeout: 5000 }),
-        page.getByRole('button', { name: 'Create Account' }).click()
+        page.getByRole('button', { name: /create account/i }).click()
     ]);
 
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
+    await page.fill('input[name="confirmPassword"]', password);
     await page.fill('input[name="dob"]', dob);
-
     await page.fill('input[name="fname"]', fname);
     await page.fill('input[name="lname"]', lname);
 
@@ -31,12 +31,10 @@ test('signup flow', async ({ page }) => {
     await expect(page.locator('input[type="hidden"][name="interests"][value="Hiking"]')).toHaveCount(1);
 
     await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle', timeout: 5000 }),
-        page.getByRole('button', { name: 'Create Account' }).click()
+        page.waitForURL('**/profile/edit', { timeout: 10000 }),
+        page.getByRole('button', { name: /create account/i }).click()
     ]);
-
-    await page.waitForURL('**/profile', { timeout: 5000 });
-    await expect(page.getByText(/Edit Profile/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edit Profile' })).toBeVisible();
 
     async function selectOptionAndAssert(selector, value) {
         const select = page.locator(selector);

@@ -2,6 +2,8 @@
 	import { onMount, tick } from 'svelte';
 	import { showToast } from '$lib/toast.svelte.js';
 
+	const defaultAvatarUrl = '/images/tempAvatar.png';
+
 	let { data } = $props();
 
 	const requests = $derived.by(() => data.requests ?? []);
@@ -466,7 +468,7 @@
 					<div class="flex flex-col md:flex-row">
 						<div class="shrink-0 md:w-2/5">
 							<img
-								src={currentMatch.imageUrl}
+								src={currentMatch.imageUrl || defaultAvatarUrl}
 								alt={`Profile picture of ${currentMatch.name}`}
 								class="h-72 w-full object-cover md:h-full"
 							/>

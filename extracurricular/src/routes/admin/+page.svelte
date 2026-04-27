@@ -1,5 +1,7 @@
 <script>
     import TopBar from '$lib/components/TopBar.svelte';
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
 
     /** @type {import('./$types').PageProps} */
     let { data, form } = $props();
@@ -10,11 +12,23 @@
     let selectedReportTarget = $state(null);
     let selectedReason = $state(null);
     const MAX_REASON_PREVIEW = 30;
-    let searchQuery = $state('');
+    let searchQuery = $state($page.url.searchParams.get('q') ?? '');
     
 
     function handleSearch(query) {
         searchQuery = query;
+
+        const trimmed = query.trim();
+        const nextUrl = trimmed
+            ? `${$page.url.pathname}?q=${encodeURIComponent(trimmed)}`
+            : $page.url.pathname;
+
+        goto(nextUrl, {
+            replaceState: true,
+            noScroll: true,
+            keepFocus: true,
+            invalidateAll: false
+        });
     }
 
     const filteredReported = $derived(

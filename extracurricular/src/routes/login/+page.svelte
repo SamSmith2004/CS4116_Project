@@ -39,7 +39,7 @@
                 <img src="/images/logo.png" alt="Extracurricular logo" class="w-8 h-8" />
             </div>
             <h1 class="text-2xl font-bold text-gray-900">Extracurricular</h1>
-            <p class="text-gray-500 text-sm mt-1">Connect with people who share your interests.</p>
+            <p class="text-gray-500 text-sm mt-1">A dating app for university students to meet people who share your interests.</p>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">

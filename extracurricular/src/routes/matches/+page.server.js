@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { and, eq, or } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { convos, matches } from '$lib/server/db/schema';
+import { convos, matches, user } from '$lib/server/db/schema';
 import { getMatchPageFeed } from '$lib/server/matching';
 import { universityTintMap } from '$lib/server/university-tint-maps';
 
@@ -11,17 +11,17 @@ export const load = async ({ locals }) => {
         return {
             requests: [],
             currentMatches: [],
-            decisionHistory: [],
+            blocklist: [],
             universityTintMap
         };
     }
 
-    const { requests, currentMatches, decisionHistory } = await getMatchPageFeed(sessionUser.id);
+    const { requests, currentMatches, blocklist } = await getMatchPageFeed(sessionUser.id);
 
     return {
         requests,
         currentMatches,
-        decisionHistory,
+        blocklist,
         universityTintMap
     };
 };
@@ -134,6 +134,43 @@ export const actions = {
 
         if (updatedRows.length === 0) {
             return fail(404, { message: 'Match not found.' });
+        }
+
+        return { success: true };
+    },
+    unblock: async ({ request, locals }) => {
+        const sessionUser = locals.user;
+        if (!sessionUser) return fail(401, { message: 'Invalid session' });
+
+        const formData = await request.formData();
+        const matchId = formData.get('matchId')?.toString();
+
+        if (!matchId || matchId === sessionUser.id) {
+            return fail(400, { message: 'Invalid unblock payload.' });
+        }
+
+        const [targetUser] = await db
+            .select({ isBanned: user.isBanned })
+            .from(user)
+            .where(eq(user.id, matchId))
+            .limit(1);
+
+        if (targetUser?.isBanned) {
+            return fail(403, { message: 'Banned users cannot be unblocked.' });
+        }
+
+        const deletedRows = await db
+            .delete(matches)
+            .where(
+                and(
+                    and(eq(matches.matcher, sessionUser.id), eq(matches.matched, matchId)),
+                    eq(matches.status, 'unmatched')
+                )
+            )
+            .returning({ id: matches.id });
+
+        if (deletedRows.length === 0) {
+            return fail(403, { message: 'Only the matcher can unblock this user.' });
         }
 
         return { success: true };

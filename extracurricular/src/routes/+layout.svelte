@@ -48,14 +48,14 @@
 		</div>
 
 		<button
-			class="md:hidden fixed top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center transition-all {mobileMenuOpen
+			class="md:hidden fixed top-1/2 -translate-y-1/2 left-1 w-11 h-11 flex items-center justify-center transition-all {mobileMenuOpen
 				? 'opacity-0 pointer-events-none'
 				: 'left-0 z-50'}"
 			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
 			aria-label="Toggle menu"
 		>
-			<div class="absolute inset-0 rounded-full -z-10 bg-white/20 border border-gray-200/20 shadow-sm"></div>
-			<span class="material-symbols-rounded text-[20px]">chevron_right</span>
+			<div class="absolute inset-0 rounded-full -z-10 bg-white/90 border border-gray-300 shadow-md"></div>
+			<span class="material-symbols-rounded text-[22px] font-semibold text-gray-700">chevron_right</span>
 		</button>
 		<!-- end -->
 	{/if}
