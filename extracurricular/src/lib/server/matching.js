@@ -89,6 +89,7 @@ async function getProfilesByIds(userIds) {
                 name: user.name,
                 dob: user.dob,
                 image: user.image,
+                isBanned: user.isBanned,
                 createdAt: user.createdAt
             },
             details: {
@@ -270,7 +271,7 @@ export async function getMatchPageFeed(currentUserId) {
         .where(eq(user.id, currentUserId));
 
     if (!currentUserRow) {
-        return { requests: [], currentMatches: [], decisionHistory: [] };
+        return { requests: [], currentMatches: [], blocklist: [] };
     }
 
     const matchRows = await db
@@ -302,8 +303,8 @@ export async function getMatchPageFeed(currentUserId) {
         })
         .filter(Boolean);
 
-    const decisionHistory = matchRows
-        .filter((row) => row.status !== 'pending')
+    const blocklist = matchRows
+        .filter((row) => row.status === 'unmatched')
         .sort((left, right) => (right.updatedAt?.getTime?.() ?? 0) - (left.updatedAt?.getTime?.() ?? 0))
         .map((row) => {
             const otherUserId = row.matcher === currentUserId ? row.matched : row.matcher;
@@ -311,14 +312,16 @@ export async function getMatchPageFeed(currentUserId) {
             if (!sourceProfile) return null;
 
             const profile = toHomepageProfile(sourceProfile.row, sourceProfile.interests);
+            const isBanned = Boolean(sourceProfile.row.user.isBanned);
+
             return {
                 ...profile,
-                decision: row.status === 'matched' ? 'pass' : 'fail',
-                source: row.matched === currentUserId ? 'matched-with-you' : 'recommendations'
+                blockStatus: isBanned ? 'banned' : 'blocked',
+                canUnblock: !isBanned && row.matcher === currentUserId
             };
         })
         .filter(Boolean)
         .slice(0, 20);
 
-    return { requests, currentMatches, decisionHistory };
+    return { requests, currentMatches, blocklist };
 }
