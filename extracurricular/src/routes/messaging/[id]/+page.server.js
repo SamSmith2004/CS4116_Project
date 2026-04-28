@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { convos, messages as messagesTable, user, matches, userDetails } from '$lib/server/db/schema';
 import { eq, and, or } from 'drizzle-orm';
-import { fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import path from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 
@@ -32,11 +32,11 @@ export const load = async ({ locals, params }) => {
     if (!sessionUser) return {};
 
     const convoId = params.id;
-    if (!convoId) return fail(400, { message: 'Conversation id is required' });
+    if (!convoId) return error(400, { message: 'Conversation id is required' });
 
     const [convo] = await db.select().from(convos).where(eq(convos.id, convoId));
-    if (!convo) return fail(404, { message: 'Conversation not found' });
-    if (convo.user1 !== sessionUser.id && convo.user2 !== sessionUser.id) return fail(403, { message: 'Access denied' });
+    if (!convo) return error(404, { message: 'Conversation not found' });
+    if (convo.user1 !== sessionUser.id && convo.user2 !== sessionUser.id) return error(403, { message: 'Access denied' });
 
     const otherUserId = convo.user1 === sessionUser.id ? convo.user2 : convo.user1;
 
@@ -72,43 +72,43 @@ export const load = async ({ locals, params }) => {
 export const actions = {
     sendMessage: async ({ request, locals, params }) => {
         const sessionUser = locals.user;
-        if (!sessionUser) return fail(400, { message: 'Invalid session' });
+        if (!sessionUser) return error(400, { message: 'Invalid session' });
 
         const convoId = params?.id;
-        if (!convoId) return fail(400, { message: 'Conversation id is required' });
+        if (!convoId) return error(400, { message: 'Conversation id is required' });
 
         const form = await request.formData();
         const receiverId = form.get('receiverId')?.toString();
         const content = form.get('content')?.toString();
         const media = form.get('media');
 
-        if (!receiverId) return fail(400, { message: 'Invalid recipient' });
-        if (!content && !(media && media.size)) return fail(400, { message: 'Invalid message' });
+        if (!receiverId) return error(400, { message: 'Invalid recipient' });
+        if (!content && !(media && media.size)) return error(400, { message: 'Invalid message' });
         if (content && containsPhoneNumber(content)) {
-            return fail(400, { message: 'Phone numbers are not allowed in messages.' });
+            return error(400, { message: 'Phone numbers are not allowed in messages.' });
         }
 
         const [convo] = await db.select().from(convos).where(eq(convos.id, convoId));
-        if (!convo) return fail(404, { message: 'Conversation not found' });
-        if (convo.user1 !== sessionUser.id && convo.user2 !== sessionUser.id) return fail(403, { message: 'Access denied' });
+        if (!convo) return error(404, { message: 'Conversation not found' });
+        if (convo.user1 !== sessionUser.id && convo.user2 !== sessionUser.id) return error(403, { message: 'Access denied' });
 
         const matchesRows = await db
             .select()
             .from(matches)
             .where(
                 or(
-                    and(eq(matches.matcher, sessionUser.id), eq(matches.matched, receiverId)),
-                    and(eq(matches.matcher, receiverId), eq(matches.matched, sessionUser.id))
+                    and(eq(matches.matcher, sessionUser.id), eq(matches.matched, receiverId), eq(matches.status, 'matched')),
+                    and(eq(matches.matcher, receiverId), eq(matches.matched, sessionUser.id), eq(matches.status, 'matched'))
                 )
             );
-        if (!matchesRows || matchesRows.length === 0) return fail(400, { message: 'You must be matched with this user to send a message' });
+        if (!matchesRows || matchesRows.length === 0) return error(400, { message: 'You must be matched with this user to send a message' });
 
         try {
             let mediaUrl = null;
             if (media && media.size > 0) {
                 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
                 if (!allowedTypes.includes(media.type)) {
-                    return fail(400, { message: 'Invalid image type. Use JPEG, PNG and WebP.' });
+                    return error(400, { message: 'Invalid image type. Use JPEG, PNG and WebP.' });
                 }
 
                 const mimeToExt = {
@@ -134,10 +134,15 @@ export const actions = {
                 receiverId
             }).returning({ id: messagesTable.id });
 
+            if (!inserted || !inserted.id) {
+                console.error('Insert errored - no rows returned');
+                return error(500, { message: 'errored to save message' });
+            }
+
             return { success: true, messageId: inserted.id };
         } catch (e) {
             console.error('Sender msg error:', e);
-            return fail(500, { message: 'Unexpected server error' });
+            return error(500, { message: 'Unexpected server error' });
         }
     }
 };
