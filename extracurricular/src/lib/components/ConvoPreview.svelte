@@ -1,13 +1,27 @@
 <script>
-	let { name, lastMessage, time, avatarColor = 'bg-blue-500' } = $props();
+	let { name, lastMessage, time, avatarUrl, avatarColor = 'bg-blue-500' } = $props();
+	const fallbackAvatarUrl = '/images/tempAvatar.png';
+	let isImageError = $state(false);
 </script>
 
 <button
 	class="w-full flex items-center gap-4 px-5 py-4 rounded-xl hover:bg-gray-50 transition-colors text-left cursor-pointer"
 >
 	<div class="shrink-0">
-		<!-- TODO: Replace with real avatar -->
-		<div class="w-12 h-12 rounded-full {avatarColor}"></div>
+		{#if avatarUrl && !isImageError}
+			<img 
+				src={avatarUrl} 
+				alt={`Avatar of ${name}`}
+				class="w-12 h-12 rounded-full object-cover"
+				onerror={() => (isImageError = true)}
+			/>
+		{:else}
+			<img 
+				src={fallbackAvatarUrl} 
+				alt={`Fallback avatar for ${name}`}
+				class="w-12 h-12 rounded-full object-cover"
+			/>
+		{/if}
 	</div>
 
 	<div class="flex-1 min-w-0">
