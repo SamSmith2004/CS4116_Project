@@ -216,10 +216,7 @@
                                                 <input type="hidden" name="matchId" value={match.id} />
                                                 <button
                                                     type="submit"
-                                                    class="rounded-lg px-3 py-2 text-sm font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors"
-                                                >
-                                                    Unmatch
-                                                </button>
+                                                    class="rounded-lg px-3 py-2 text-sm font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">Block</button>
                                             </form>
                                         </div>
                                     </div>
