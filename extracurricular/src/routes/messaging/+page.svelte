@@ -34,6 +34,7 @@
         name: c.otherUser?.name || 'Unknown',
         lastMessage: c.lastMessage || '',
         time: c.timestamp ? formatTime(c.timestamp) : '',
+        avatarUrl: c.otherUser?.avatarUrl,
         avatarColor: 'bg-indigo-500'
     })));
 
@@ -58,6 +59,7 @@
                     name: c.otherUser?.name || 'Unknown',
                     lastMessage: c.lastMessage || '',
                     time: c.timestamp ? formatTime(c.timestamp) : '',
+                    avatarUrl: c.otherUser?.avatarUrl,
                     avatarColor: 'bg-indigo-500'
                 }));
                 conversations = newConvos;
@@ -82,6 +84,7 @@
                     name={convo.name}
                     lastMessage={convo.lastMessage}
                     time={convo.time}
+                    avatarUrl={convo.avatarUrl}
                     avatarColor={convo.avatarColor}
                 />
             </a>
