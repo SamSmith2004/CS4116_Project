@@ -86,10 +86,11 @@
                 body: formData
             });
             const resJson = await res.json().catch(() => { throw new Error('Invalid JSON response from server'); });
-            const data = JSON.parse(resJson.data)
-            const messageId = data[2]; // This should be in 0 but Svletekit is doing some weird padding of the array 
 
-            if (res.ok) {
+            if (resJson?.type === 'success') {
+                const actionData = JSON.parse(resJson.data);
+                const messageId = data[2]; // This should be in 0 but Svletekit is doing some weird padding of the array 
+
                 messages = [
                     ...messages,
                     { id: messageId, text: content, mediaUrl: file ? URL.createObjectURL(file) : null, senderId: data?.me?.id, receiverId: data?.otherUser?.id, sender: 'sender', time: formatTime(Date.now()) }
@@ -102,11 +103,18 @@
                 const container = messageContainer || document.getElementById('messageContainer');
                 container?.scrollTo(0, container.scrollHeight);
             } else {
-                showToast('Send failed: ' + (res.statusText || res.status), 'error');
+                // Remind me next time to just use a http endpoint and not this fancy svelte form for messaging
+                const errMsg =
+                    resJson?.error?.message ||
+                    resJson?.data?.message ||
+                    resJson?.message ||
+                    res.statusText ||
+                    String(res.status);
+                showToast('Send failed: ' + errMsg, 'error');
             }
         } catch (e) {
             console.error('Send error:', e);
-            showToast('Send error: ' + (e?.message || e), 'error');
+            showToast('Message failed to send', 'error');
         } finally {
             sending = false;
         }
