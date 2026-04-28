@@ -11,6 +11,7 @@
     let showViewEvent = $state(false);
     let selectedEvent = $state(null);
     let eventsList = $state([]);
+    let mobileDayIndex = $state(0);
 
     const HOUR_HEIGHT = 80; // each hour is h-20 ==> 80pixels
 
@@ -24,6 +25,27 @@
 
     function goToToday() {
         currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1});
+        mobileDayIndex = (new Date().getDay() + 6) % 7;
+    }
+
+    function nextDay() {
+        if (mobileDayIndex < 6) {
+            mobileDayIndex += 1;
+            return;
+        }
+
+        nextWeek();
+        mobileDayIndex = 0;
+    }
+
+    function previousDay() {
+        if (mobileDayIndex > 0) {
+            mobileDayIndex -= 1;
+            return;
+        }
+
+        previousWeek();
+        mobileDayIndex = 6;
     }
 
     function getEventsAtDay(day) {
@@ -83,6 +105,8 @@
         return startedAt <= new Date();
     }
 
+    const selectedMobileDay = $derived(days[mobileDayIndex] ?? days[0]);
+
     function patchEventRegistration(eventId, isRegistered, attendeesCount) {
         eventsList = eventsList.map((event) => {
             if (event.id !== eventId) return event;
@@ -128,32 +152,47 @@
 </script>
 
 <div class="flex flex-col h-screen bg-transparent">
-    <header class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">
-            {format(currentWeekStart, 'MMMM yyyy')}
-        </h2>
-        <h1 class="text-center mt-5 text-3xl">Events</h1>
-        <div class="flex items-center space-x-4">
+    <header class="border-b border-gray-200 px-4 py-4 md:px-6">
+        <div class="flex items-start justify-between gap-3 md:items-center">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">{format(currentWeekStart, 'MMMM yyyy')}</h2>
+                <h1 class="text-3xl leading-tight">Events</h1>
+            </div>
+
+            {#if data.user?.isAdmin}
+                <button onclick={ ()=> showAddEvent = true} class="bg-red text-red px-3 py-2 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform md:px-4">
+                    + New Event
+                </button>
+            {/if}
+        </div>
+
+        <div class="mt-3 flex items-center justify-between md:hidden">
             <button onclick={goToToday} class="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50">Today</button>
             <div class="flex items-center border rounded-md">
-                <button onclick={previousWeek} class="p-2 hover:bg-gray-50 border-r">
+                <button onclick={previousDay} class="p-2 hover:bg-gray-50 border-r" aria-label="Previous day">
                     <span class="material-symbols-rounded">chevron_left</span>
                 </button>
-                <button onclick={nextWeek} class="p-2 hover:bg-gray-50">
+                <button onclick={nextDay} class="p-2 hover:bg-gray-50" aria-label="Next day">
                     <span class="material-symbols-rounded">chevron_right</span>
                 </button>
             </div>
         </div>
 
-        {#if data.user?.isAdmin}
-            <button onclick={ ()=> showAddEvent = true} class="bg-red text-red px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
-                + New Event
-            </button>
-        {/if}
+        <div class="mt-3 hidden items-center space-x-4 md:flex">
+            <button onclick={goToToday} class="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50">Today</button>
+            <div class="flex items-center border rounded-md">
+                <button onclick={previousWeek} class="p-2 hover:bg-gray-50 border-r" aria-label="Previous week">
+                    <span class="material-symbols-rounded">chevron_left</span>
+                </button>
+                <button onclick={nextWeek} class="p-2 hover:bg-gray-50" aria-label="Next week">
+                    <span class="material-symbols-rounded">chevron_right</span>
+                </button>
+            </div>
+        </div>
     </header>
 
     <div class="flex flex-col flex-1 overflow-hidden">
-        <div class="grid grid-cols-7 border-b border-gray-200 ml-16">
+        <div class="hidden md:grid md:grid-cols-7 border-b border-gray-200 ml-16">
             {#each days as day}
                 <div class="py-3 text-center">
                     <span class="text-xs font-semibold uppercase text-gray-500">{format(day, 'EEE')}</span>
@@ -167,8 +206,13 @@
             {/each}
         </div>
 
-        <div class="flex-1 overflow-y-auto flex">
-            <div class="w-16 flex-none border-right border-gray-100 bg-white">
+        <div class="border-b border-gray-200 px-4 py-3 text-center md:hidden">
+            <span class="text-xs font-semibold uppercase text-gray-500">{format(selectedMobileDay, 'EEE')}</span>
+            <div class="mt-1 text-base font-bold text-gray-900">{format(selectedMobileDay, 'dd MMM yyyy')}</div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto hidden md:flex">
+            <div class="w-16 flex-none border-r border-gray-100 bg-white">
                 {#each Array.from({ length: 24 }) as _, h}
                     <div class="text-right pr-2 text-xs text-gray-400" style="height: {HOUR_HEIGHT}px;">
                         {h}:00
@@ -203,6 +247,43 @@
                         {/each}
                     </div>
                 {/each}
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto flex md:hidden">
+            <div class="w-14 flex-none border-r border-gray-100 bg-white">
+                {#each Array.from({ length: 24 }) as _, h}
+                    <div class="text-right pr-2 text-[11px] text-gray-400" style="height: {HOUR_HEIGHT}px;">
+                        {h}:00
+                    </div>
+                {/each}
+            </div>
+
+            <div class="flex-1 relative">
+                <div class="absolute inset-0 pointer-events-none">
+                    {#each Array.from({ length: 24 }) as _, h}
+                        <div class="border-b border-gray-100 w-full" style="height: {HOUR_HEIGHT}px;"></div>
+                    {/each}
+                </div>
+
+                <div class="relative h-full">
+                    {#each getEventsAtDay(selectedMobileDay) as event}
+                        <button
+                            type="button"
+                            onclick={() => openEventDetails(event)}
+                            class="absolute left-1 right-1 p-2 rounded-lg bg-blue-100 border-l-4 border-blue-600 shadow-sm z-10 overflow-hidden text-left hover:bg-blue-200 transition-colors"
+                            style="top: {getTimePos(event.time)}px; height: {getEventHeight(event.time, event.endTime)}px;"
+                        >
+                            <p class="text-[10px] font-bold text-blue-800 leading-tight truncate">{event.name}</p>
+                            <p class="text-[9px] text-blue-600 font-medium">
+                                {event.time.slice(0,5)} - {event.endTime?.slice(0,5) || '?'}
+                            </p>
+                            <p class="text-[9px] text-blue-700 font-semibold">
+                                {attendeeCount(event)} attendee{attendeeCount(event) === 1 ? '' : 's'}
+                            </p>
+                        </button>
+                    {/each}
+                </div>
             </div>
         </div>
     </div>
