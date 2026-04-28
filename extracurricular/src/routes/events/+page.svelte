@@ -167,7 +167,7 @@
         </div>
 
         <div class="mt-3 flex items-center justify-between md:hidden">
-            <button onclick={goToToday} class="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50">Today</button>
+            <button onclick={goToToday} class="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-300">Today</button>
             <div class="flex items-center border rounded-md">
                 <button onclick={previousDay} class="p-2 hover:bg-gray-50 border-r" aria-label="Previous day">
                     <span class="material-symbols-rounded">chevron_left</span>
@@ -179,7 +179,7 @@
         </div>
 
         <div class="mt-3 hidden items-center space-x-4 md:flex">
-            <button onclick={goToToday} class="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50">Today</button>
+            <button onclick={goToToday} class="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-300">Today</button>
             <div class="flex items-center border rounded-md">
                 <button onclick={previousWeek} class="p-2 hover:bg-gray-50 border-r" aria-label="Previous week">
                     <span class="material-symbols-rounded">chevron_left</span>
