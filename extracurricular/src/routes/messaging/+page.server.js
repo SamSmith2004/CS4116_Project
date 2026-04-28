@@ -32,7 +32,7 @@ export const load = async ({ locals }) => {
             return {
                 id: c.id,
                 otherUser: other || { id: otherUserId, name: 'Unknown' },
-                lastMessage: lastMsg?.text || (lastMsg.text === null && lastMsg.url !== null) ? 'attachment' : 'Could not load message',
+                lastMessage: lastMsg?.text || (lastMsg?.url ? 'attachment' : 'Could not load message'),
                 timestamp: lastMsg?.timestamp || null
             };
         })
